@@ -7,3 +7,6 @@ lcov.info
 *.profraw
 *.profdata
 *.tsbuildinfo
+
+# Tauri-generated ACL schemas
+crates/harvey-app/gen/

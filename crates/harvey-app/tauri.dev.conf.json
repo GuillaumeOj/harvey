@@ -1,0 +1,19 @@
+{
+  "$schema": "https://schema.tauri.app/config/2",
+  "productName": "Harvey Dev",
+  "identifier": "com.harvey.dev",
+  "app": {
+    "windows": [
+      {
+        "label": "main",
+        "title": "Harvey Dev",
+        "width": 1200,
+        "height": 800,
+        "minWidth": 960,
+        "minHeight": 640,
+        "incognito": true,
+        "create": false
+      }
+    ]
+  }
+}
