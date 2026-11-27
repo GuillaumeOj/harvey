@@ -10,7 +10,7 @@ jobs:
       - uses: actions/cache@08c6903cd8c0fde910a37f88322edcfb5dd907a8c
       - uses: docker://alpine:3.20
       - uses: owner/repo
-      - uses: "quoted/action@v1" # v1
+      - uses: "quoted/action@v1"  # v1
       - uses: ok/ok@08c6903cd8c0fde910a37f88322edcfb5dd907a8
   reuse:
     uses: owner/repo/.github/workflows/x.yml@main
