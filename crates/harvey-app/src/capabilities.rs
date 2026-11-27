@@ -2,7 +2,8 @@
 //!
 //! Rules:
 //! 1. Each file has exactly one window label, no glob, and no `remote` or `webviews` key. No two files share a label.
-//! 2. Permissions are `core:*` or `allow-<command>`. Anything else (plugin permissions, `deny-*`, unknown) fails.
+//! 2. Permissions are in [`ALLOWED_CORE_PERMISSIONS`] or `allow-<command>`. Anything else (other `core:*`, plugin
+//!    permissions, `deny-*`, unknown) fails.
 //! 3. Every command is granted in exactly one file, and every `allow-*` names a known command.
 //! 4. A `<window>__<base>` wrapper is granted only in the file of window `<window>`, and `<base>` is a command.
 //!
@@ -28,6 +29,11 @@ pub struct Capability {
     #[serde(default)]
     pub webviews: Vec<String>,
 }
+
+/// The only `core:*` permissions a capability may grant. Widening this list is a reviewed change: permissions such as
+/// `core:webview:allow-create-webview-window` would let the webview open windows that have no navigation lock-down.
+pub const ALLOWED_CORE_PERMISSIONS: &[&str] =
+    &["core:event:allow-listen", "core:event:allow-unlisten"];
 
 /// A permission entry: a plain identifier, or the object form `{ "identifier": …, "allow": … }`.
 #[derive(Debug, Clone, Deserialize)]
@@ -57,7 +63,7 @@ pub enum Violation {
     Webviews { file: String },
     /// Rule 1: two files for one window.
     SharedLabel { label: String, files: [String; 2] },
-    /// Rule 2: neither `core:*` nor `allow-<command>`.
+    /// Rule 2: neither an allowed core permission nor `allow-<command>`.
     ForeignPermission { file: String, permission: String },
     /// Rule 3: `allow-<command>` for a command that does not exist.
     UnknownCommand { file: String, command: String },
@@ -90,7 +96,7 @@ impl fmt::Display for Violation {
             Self::ForeignPermission { file, permission } => {
                 write!(
                     f,
-                    "{file}: `{permission}` is neither `core:*` nor `allow-<command>`"
+                    "{file}: `{permission}` is neither an allowed core permission nor `allow-<command>`"
                 )
             }
             Self::UnknownCommand { file, command } => {
@@ -172,7 +178,7 @@ pub fn check_capabilities(files: &[Capability], commands: &[&str]) -> Result<(),
 
         for permission in &file.permissions {
             let permission = permission.identifier();
-            if permission.starts_with("core:") {
+            if ALLOWED_CORE_PERMISSIONS.contains(&permission) {
                 continue;
             }
             let Some(command) = command_of(permission) else {
@@ -276,6 +282,78 @@ mod tests {
             let lines: Vec<String> = violations.iter().map(ToString::to_string).collect();
             panic!("capability violations:\n{}", lines.join("\n"));
         }
+    }
+
+    #[test]
+    fn rejects_core_permissions_outside_the_allow_list() {
+        let files = [main_file(&json!([
+            "core:event:allow-listen",
+            "core:webview:allow-create-webview-window",
+            "core:default",
+            "allow-app-info",
+        ]))];
+        let found = violations(&files, &["app_info"]);
+        let permissions: Vec<&str> = found
+            .iter()
+            .map(|v| match v {
+                Violation::ForeignPermission { permission, .. } => permission.as_str(),
+                other => panic!("unexpected {other}"),
+            })
+            .collect();
+        assert_eq!(
+            permissions,
+            ["core:webview:allow-create-webview-window", "core:default"]
+        );
+    }
+
+    fn read_json(file: &str) -> serde_json::Value {
+        let path = std::path::Path::new(env!("CARGO_MANIFEST_DIR")).join(file);
+        let text =
+            std::fs::read_to_string(&path).unwrap_or_else(|e| panic!("{}: {e}", path.display()));
+        serde_json::from_str(&text).unwrap_or_else(|e| panic!("{}: {e}", path.display()))
+    }
+
+    /// Capabilities live in `capabilities/*.json`, where the checker sees them. An inline object in the config
+    /// would bypass it. String references are allowed, and so is an absent or empty key.
+    #[test]
+    fn configs_declare_no_inline_capabilities() {
+        for file in ["tauri.conf.json", "tauri.dev.conf.json"] {
+            let config = read_json(file);
+            let Some(capabilities) = config.pointer("/app/security/capabilities") else {
+                continue;
+            };
+            let entries = capabilities
+                .as_array()
+                .unwrap_or_else(|| panic!("{file}: capabilities is not an array"));
+            assert!(
+                entries.iter().all(serde_json::Value::is_string),
+                "{file}: inline capability in app.security.capabilities, use capabilities/*.json"
+            );
+        }
+    }
+
+    /// The dev overlay replaces the `windows` array, so it repeats the main window. It must stay the base entry apart
+    /// from the title.
+    #[test]
+    fn dev_overlay_main_window_matches_the_base() {
+        let main_window = |file: &str| {
+            let config = read_json(file);
+            let mut window = config
+                .pointer("/app/windows")
+                .and_then(|w| w.as_array())
+                .and_then(|w| w.iter().find(|w| w["label"] == "main"))
+                .unwrap_or_else(|| panic!("{file}: no `main` window"))
+                .clone();
+            window
+                .as_object_mut()
+                .expect("window object")
+                .remove("title");
+            window
+        };
+        assert_eq!(
+            main_window("tauri.dev.conf.json"),
+            main_window("tauri.conf.json")
+        );
     }
 
     #[test]
