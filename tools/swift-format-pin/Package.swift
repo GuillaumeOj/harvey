@@ -1,6 +1,6 @@
 // swift-tools-version:6.4
 // Pins swift-format for scripts/swift-format.sh. Bump `exact:` with the Swift toolchain's major.minor
-// (swift-format 604.x ⇔ Swift 6.4), then run `swift package --package-path tools/swift-format-pin resolve`.
+// (swift-format 604.x ⇔ Swift 6.4), then run `swift package --package-path tools/swift-format-pin update`.
 import PackageDescription
 
 let package = Package(

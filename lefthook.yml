@@ -17,8 +17,9 @@ pre-commit:
         # Tooling-owned trees, not project sources.
         - ".orchestrator/**"
         - ".claude/**"
-      # Staged files are passed on to rustfmt so files not yet reachable from a crate root are formatted too.
-      run: scripts/fmt.sh {staged_files}
+      # The pinned nightly rustfmt of scripts/fmt.sh, on the staged files only (`cargo fmt --all` would rewrite
+      # unstaged files too). skip_children: do not follow `mod foo;` into files that are not staged.
+      run: rustfmt +"$(cat rustfmt-nightly.toolchain)" --config skip_children=true {staged_files}
       stage_fixed: true
 
     biome:
@@ -61,8 +62,9 @@ pre-commit:
         - "bunfig.toml"
         - "rust-toolchain.toml"
         - "rustfmt-nightly.toolchain"
-        - "requirements-dev.*"
-        - ".github/**/*.yml"
+        - "requirements*.{in,txt}"
+        - "**/requirements*.{in,txt}"
+        - ".github/**/*.{yml,yaml}"
       run: bun scripts/deps-exact.ts
 
 pre-push:

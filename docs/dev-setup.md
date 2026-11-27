@@ -38,7 +38,7 @@ uv venv .venv
 uv pip install --python .venv --require-hashes -r requirements-dev.txt
 ```
 
-Without uv (Python 3 with `venv` and `pip`):
+Without uv (Python 3.10 or later, with `venv` and `pip`):
 
 ```sh
 python3 -m venv .venv
@@ -49,7 +49,7 @@ To change a version, edit `requirements-dev.in` (top-level tools only, `name==x.
 with the command recorded in its header:
 
 ```sh
-uv pip compile --generate-hashes requirements-dev.in -o requirements-dev.txt
+uv pip compile --generate-hashes --python-version 3.10 requirements-dev.in -o requirements-dev.txt
 ```
 
 ## 3. swift-format
@@ -87,7 +87,7 @@ bunx lefthook install
 
 `lefthook.yml` defines:
 
-- **pre-commit** (parallel, staged files only): `scripts/fmt.sh` (Rust), Biome `check --write` (TS/JS/JSON/CSS),
+- **pre-commit** (parallel, staged files only): the pinned nightly rustfmt (Rust), Biome `check --write` (TS/JS/JSON/CSS),
   `scripts/sqlfluff.sh fix` + `lint` (migrations), markdownlint-cli2 (Markdown), `scripts/yamllint.sh` (YAML),
   `scripts/swift-format.sh format` + `lint` (Swift), and `bun scripts/deps-exact.ts` when a dependency or toolchain
   file is staged. Formatters re-stage the files they fix; linters block the commit.
@@ -106,8 +106,10 @@ Keep those statements in dedicated migration files whose description ends in `_f
 sqlfluff honours it for files passed explicitly too (the hook case), as long as it runs from the repo root, which
 `scripts/sqlfluff.sh` ensures. Every other migration must pass `scripts/sqlfluff.sh lint`.
 
-`scripts/fixtures/sqlfluff/` holds sample files used to check the configuration (a clean file, a badly formatted
-file that `fix` repairs, an `_fts5` file that is skipped). They are not migrations.
+`scripts/fixtures/sqlfluff/` holds sample files that prove the configuration: a clean file, a badly formatted file
+that `fix` repairs, and an `_fts5` file. They are not migrations, so `.sqlfluffignore` does not apply to them where
+they are; to check the exclusion, copy them into `crates/harvey-db/migrations/` in a scratch checkout and run
+`scripts/sqlfluff.sh fix` then `lint` (the `_fts5` file is left untouched and not reported).
 
 ## Dependency pins (`deps-exact`)
 

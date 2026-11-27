@@ -23,7 +23,7 @@ case "$mode" in
 esac
 
 if ! command -v swift >/dev/null 2>&1; then
-  echo "swift-format: \`swift\` not found; install Xcode (or the Xcode Command Line Tools) and run \`swift build --package-path tools/swift-format-pin -c release\` (see docs/dev-setup.md)" >&2
+  echo "swift-format: \`swift\` not found; install Xcode (or the Xcode Command Line Tools) and run \`swift build --package-path tools/swift-format-pin -c release --product swift-format\` (see docs/dev-setup.md)" >&2
   exit 1
 fi
 

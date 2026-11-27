@@ -1,6 +1,7 @@
 # FTS5 virtual tables and triggers: the SQLite dialect cannot parse them.
 # Convention: keep them in dedicated migration files whose description ends in
-# `_fts5` or `_triggers` (see docs/dev-setup.md). These are the only patterns;
-# scripts/sqlfluff.sh reads them from here.
+# `_fts5` or `_triggers` (see docs/dev-setup.md). This file is the only place
+# the patterns live; sqlfluff applies them to explicit paths too when run from
+# the repo root, which scripts/sqlfluff.sh ensures.
 crates/harvey-db/migrations/*_fts5.sql
 crates/harvey-db/migrations/*_triggers.sql
