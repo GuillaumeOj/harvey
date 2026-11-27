@@ -69,7 +69,10 @@ function npmReason(spec: string): string {
 
 function checkNpmSpec(file: string, location: string, spec: unknown): Violation[] {
   if (typeof spec !== "string") return [{ file, location, spec: describe(spec), reason: "must be a string" }];
-  if (spec === "workspace:*" || EXACT_SEMVER.test(spec) || NPM_ALIAS.test(spec)) return [];
+  // `catalog:` / `catalog:name` reference a catalog entry, which is itself checked (see checkPackageJson).
+  if (spec === "workspace:*" || /^catalog:[\w.-]*$/.test(spec) || EXACT_SEMVER.test(spec) || NPM_ALIAS.test(spec)) {
+    return [];
+  }
   return [{ file, location, spec, reason: npmReason(spec) }];
 }
 
@@ -446,7 +449,7 @@ export function checkRepo(root: string): { filesChecked: number; violations: Vio
   violations.sort(
     (a, b) =>
       a.file.localeCompare(b.file, "en") ||
-      a.location.localeCompare(b.location, "en") ||
+      a.location.localeCompare(b.location, "en", { numeric: true }) ||
       a.spec.localeCompare(b.spec, "en"),
   );
   return { filesChecked, violations };
@@ -476,7 +479,7 @@ function parseArgs(argv: string[]): { root?: string; json: boolean } {
     if (arg === "--json") json = true;
     else if (arg === "--root") {
       root = argv[++i];
-      if (root === undefined) throw new FileError("--root requires a directory");
+      if (root === undefined || root.startsWith("--")) throw new FileError("--root requires a directory");
     } else if (arg.startsWith("--root=")) {
       root = arg.slice("--root=".length);
       if (root === "") throw new FileError("--root requires a directory");

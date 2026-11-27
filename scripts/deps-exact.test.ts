@@ -4,6 +4,7 @@ import { tmpdir } from "node:os";
 import { join, resolve } from "node:path";
 import {
   checkCargoToml,
+  checkPackageJson,
   checkPackageSwift,
   checkRepo,
   checkRequirements,
@@ -112,6 +113,14 @@ describe("package.json overrides, resolutions and catalogs", () => {
       "package.json: workspaces.catalog.c3",
       "package.json: workspaces.catalogs.n.c4",
     ]);
+  });
+
+  test("accepts catalog: references (the catalog entries themselves are checked)", () => {
+    const text = JSON.stringify({
+      dependencies: { a: "catalog:", b: "catalog:named" },
+      workspaces: { catalog: { a: "1.0.0" } },
+    });
+    expect(checkPackageJson("package.json", text)).toEqual([]);
   });
 
   test("reports the offending spec", () => {
