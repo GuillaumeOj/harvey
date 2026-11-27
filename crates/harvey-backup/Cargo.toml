@@ -1,0 +1,15 @@
+[package]
+name = "harvey-backup"
+edition.workspace = true
+rust-version.workspace = true
+version.workspace = true
+publish.workspace = true
+
+[lints]
+workspace = true
+
+[features]
+fake-platform = []
+
+[dependencies]
+harvey-db = { workspace = true }
