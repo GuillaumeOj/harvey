@@ -420,10 +420,10 @@ harvey/
 
 ### 6.5 Data location
 
-- Live DB: App Group container `~/Library/Group Containers/<TeamID>.com.fusily.harvey/Harvey/harvey.sqlite` (team-prefixed group ID, no provisioning profile needed). Path overridable with `HARVEY_DATA_DIR` for development and tests.
-- Development builds use a separate bundle/group ID (`com.fusily.harvey.dev`) and never touch production data.
+- Live DB: App Group container `~/Library/Group Containers/<TeamID>.com.harvey/Harvey/harvey.sqlite` (team-prefixed group ID, no provisioning profile needed). Path overridable with `HARVEY_DATA_DIR` for development and tests.
+- Development builds use a separate bundle/group ID (`com.harvey.dev`) and never touch production data.
 - Local safety snapshots, invoice PDF archive, numbering high-water mark: in the same container.
-- Device-local settings: `~/Library/Application Support/com.fusily.harvey/local.json` (not restored).
+- Device-local settings: `~/Library/Application Support/com.harvey/local.json` (not restored).
 
 ### 6.6 EventKit integration
 

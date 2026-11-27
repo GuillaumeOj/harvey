@@ -72,6 +72,52 @@
   --duree: 150ms;
   --courbe: ease-out;
 
+  /* Text styles */
+  --texte-titre-page-police: var(--font-ui);
+  --texte-titre-page-taille: 28px;
+  --texte-titre-page-interligne: 34px;
+  --texte-titre-page-graisse: 600;
+  --texte-titre-page-approche: -0.01em;
+  --texte-titre-section-police: var(--font-ui);
+  --texte-titre-section-taille: 20px;
+  --texte-titre-section-interligne: 26px;
+  --texte-titre-section-graisse: 600;
+  --texte-titre-carte-police: var(--font-ui);
+  --texte-titre-carte-taille: 15px;
+  --texte-titre-carte-interligne: 20px;
+  --texte-titre-carte-graisse: 600;
+  --texte-corps-police: var(--font-ui);
+  --texte-corps-taille: 13px;
+  --texte-corps-interligne: 18px;
+  --texte-corps-graisse: 400;
+  --texte-corps-fort-police: var(--font-ui);
+  --texte-corps-fort-taille: 13px;
+  --texte-corps-fort-interligne: 18px;
+  --texte-corps-fort-graisse: 500;
+  --texte-legende-police: var(--font-ui);
+  --texte-legende-taille: 11px;
+  --texte-legende-interligne: 14px;
+  --texte-legende-graisse: 600;
+  --texte-legende-approche: 0.06em;
+  --texte-legende-casse: uppercase;
+  --texte-note-titre-police: var(--font-lecture);
+  --texte-note-titre-taille: 26px;
+  --texte-note-titre-interligne: 32px;
+  --texte-note-titre-graisse: 500;
+  --texte-note-corps-police: var(--font-lecture);
+  --texte-note-corps-taille: 18px;
+  --texte-note-corps-interligne: 27px;
+  --texte-note-corps-graisse: 400;
+  --texte-note-corps-largeur-max: 680px;
+  --texte-mono-police: var(--font-mono);
+  --texte-mono-taille: 13px;
+  --texte-mono-interligne: 18px;
+  --texte-mono-graisse: 400;
+  --texte-mono-petit-police: var(--font-mono);
+  --texte-mono-petit-taille: 11px;
+  --texte-mono-petit-interligne: 14px;
+  --texte-mono-petit-graisse: 400;
+
   /* shadcn/ui */
   --background: var(--surface-fond);
   --foreground: var(--texte-principal);

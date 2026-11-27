@@ -8,7 +8,7 @@
  *   bun brand/build-tokens.ts           write the generated files
  *   bun brand/build-tokens.ts --check   exit 1 if they are missing or out of date
  */
-import { readFileSync, writeFileSync, mkdirSync, existsSync } from "node:fs";
+import { existsSync, mkdirSync, readFileSync, writeFileSync } from "node:fs";
 import { join } from "node:path";
 
 type Pair = { light: string; dark: string; description?: string };
@@ -92,6 +92,19 @@ const fontStack = (key: string) => {
   return [`"${f.family}"`, ...f.fallback.map((x) => (x.includes(" ") ? `"${x}"` : x))].join(", ");
 };
 
+const textStyleVars = Object.entries(tokens.text).flatMap(([name, t]) => {
+  const v = `  --texte-${name}`;
+  return [
+    `${v}-police: var(--font-${t.font});`,
+    `${v}-taille: ${t.size}px;`,
+    `${v}-interligne: ${t.lineHeight}px;`,
+    `${v}-graisse: ${t.weight};`,
+    ...(t.letterSpacing !== undefined ? [`${v}-approche: ${t.letterSpacing};`] : []),
+    ...(t.transform !== undefined ? [`${v}-casse: ${t.transform};`] : []),
+    ...(t.maxWidth !== undefined ? [`${v}-largeur-max: ${t.maxWidth}px;`] : []),
+  ];
+});
+
 const css = [
   `/* ${HEADER} */`,
   `/* ${tokens.meta.name} tokens v${tokens.meta.version} */`,
@@ -109,6 +122,9 @@ const css = [
   ...Object.entries(tokens.shadow).map(([k, v]) => `  --ombre-${k}: ${v};`),
   `  --duree: ${tokens.motion.duration}ms;`,
   `  --courbe: ${tokens.motion.easing};`,
+  "",
+  "  /* Text styles */",
+  ...textStyleVars,
   "",
   "  /* shadcn/ui */",
   ...shadcn.map(([key, ref]) => `  --${key}: var(--${ref.replace(".", "-")});`),

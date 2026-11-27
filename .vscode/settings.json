@@ -1,0 +1,12 @@
+{
+  "rust-analyzer.rustfmt.overrideCommand": [
+    "rustup",
+    "run",
+    "nightly-2026-11-01",
+    "--",
+    "rustfmt",
+    "--edition",
+    "2024"
+  ],
+  "rust-analyzer.cargo.features": ["fake-platform"]
+}

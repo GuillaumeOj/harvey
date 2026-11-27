@@ -1,0 +1,1 @@
+//! Real macOS implementation (placeholder).
