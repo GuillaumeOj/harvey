@@ -8,7 +8,7 @@
  *   bun brand/build-tokens.ts           write the generated files
  *   bun brand/build-tokens.ts --check   exit 1 if they are missing or out of date
  */
-import { readFileSync, writeFileSync, mkdirSync, existsSync } from "node:fs";
+import { existsSync, mkdirSync, readFileSync, writeFileSync } from "node:fs";
 import { join } from "node:path";
 
 type Pair = { light: string; dark: string; description?: string };
