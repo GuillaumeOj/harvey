@@ -1,0 +1,8 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="1024" height="1024" viewBox="0 0 100 100">
+<defs>
+  <linearGradient id="grad-bg" x1="0" y1="0" x2="0" y2="1"><stop offset="0" stop-color="#FCFAF6"/><stop offset="1" stop-color="#E4DCCF"/></linearGradient>
+  <linearGradient id="grad-nib" x1="0.15" y1="0" x2="0.85" y2="1"><stop offset="0" stop-color="#9A3140"/><stop offset="1" stop-color="#561520"/></linearGradient>
+  <linearGradient id="grad-sec" x1="0" y1="0" x2="1" y2="0"><stop offset="0" stop-color="#463C38"/><stop offset="1" stop-color="#171312"/></linearGradient>
+</defs>
+<rect width="100" height="100" rx="0" fill="url(#grad-bg)"/>
+</svg>
