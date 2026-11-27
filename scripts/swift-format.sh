@@ -1,6 +1,6 @@
 #!/usr/bin/env bash
 # Formats or lints Swift with the swift-format pinned in tools/swift-format-pin/Package.swift (+ Package.resolved).
-# Usage: scripts/swift-format.sh {format|lint} [files…]
+# Usage: scripts/swift-format.sh {format|lint} [files…]   (file paths relative to the repo root)
 #   No files: every tracked *.swift outside brand/generated/ (exit 0 when there is none).
 #   lint always runs with --strict (warnings fail).
 # The first run builds swift-format and swift-syntax from source (a few minutes); later runs reuse
@@ -30,10 +30,11 @@ fi
 excluded="brand/generated/"
 files=()
 if [[ $# -eq 0 ]]; then
-  while IFS= read -r f; do files+=("$f"); done < <(git ls-files -- '*.swift' ":(exclude)$excluded")
+  # Skip tracked files deleted from the working tree (not yet staged as deleted).
+  while IFS= read -r f; do if [[ -f "$f" ]]; then files+=("$f"); fi; done < <(git ls-files -- '*.swift' ":(exclude)$excluded")
 else
   for f in "$@"; do
-    [[ "$f" == "$excluded"* ]] || files+=("$f")
+    [[ "${f#./}" == "$excluded"* ]] || files+=("$f")
   done
 fi
 if [[ ${#files[@]} -eq 0 ]]; then

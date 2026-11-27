@@ -56,7 +56,7 @@ Always pass `--locked`.
 cargo build  --workspace --locked [--features fake-platform]
 cargo test   --workspace --locked [--features fake-platform]
 cargo clippy --workspace --all-targets [--all-features] --locked -- -D warnings
-scripts/fmt.sh [--check]   # rustfmt from the nightly pinned in rustfmt-nightly.toolchain
+scripts/fmt.sh [--check] [files…]   # rustfmt from the nightly pinned in rustfmt-nightly.toolchain
 ```
 
 The stable toolchain is pinned in `rust-toolchain.toml`; the nightly is used only by rustfmt.

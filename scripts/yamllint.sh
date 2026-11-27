@@ -1,6 +1,6 @@
 #!/usr/bin/env bash
 # Lints YAML with the pinned yamllint from .venv/ (see requirements-dev.txt) and .yamllint.yml.
-# Usage: scripts/yamllint.sh [files…]   (no files: the whole repo)
+# Usage: scripts/yamllint.sh [files…]   (file paths relative to the repo root; no files: the whole repo)
 set -euo pipefail
 root="$(cd "$(dirname "${BASH_SOURCE[0]}")/.." && pwd)"
 cd "$root"

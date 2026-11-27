@@ -3,6 +3,8 @@ extends: default
 ignore: |
   node_modules/
   target/
+  brand/generated/
+  .sqlx/
   .venv/
   tools/swift-format-pin/.build/
   .orchestrator/
