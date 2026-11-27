@@ -49,7 +49,9 @@ The live database is:
 
 <!-- markdownlint-enable MD013 -->
 
-`HARVEY_DATA_DIR` overrides this path for development and tests.
+Development builds use the same path under the development group,
+`<TeamID>.com.fusily.harvey.dev`. `HARVEY_DATA_DIR` overrides this path for
+development and tests.
 
 ### Entitlement files
 
@@ -85,7 +87,7 @@ Sign inside-out, each item with its own entitlement file (§13 step 3):
 1. Frameworks and dylibs.
 2. `harvey-mcp`.
 3. Widget `.appex` (sandbox + App Group).
-4. `Harvey.app` (App Group; hardened runtime).
+4. `Harvey.app` (App Group, calendars; hardened runtime).
 
 Never use `codesign --deep`. Every Mach-O is signed with the hardened
 runtime.
@@ -94,8 +96,9 @@ runtime.
 
 ### Positive
 
-- `Harvey.app` is not sandboxed, so file bookmarks are regular app-scoped
-  bookmarks, not security-scoped ones (§6.8).
+- `Harvey.app` is not sandboxed, so file bookmarks are regular bookmarks,
+  created without the security-scope option and resolved by the app only
+  (§6.8 calls them app-scoped); no security-scoped access is started.
 - Writing to the backup folder is a plain filesystem write by the
   non-sandboxed app. iCloud Drive access may prompt once; onboarding
   handles it.
@@ -123,8 +126,8 @@ runtime.
 
 - #116: the release pipeline consumes the entitlement files, resolves
   `$(TeamID)` from `HARVEY_TEAM_ID` and signs in the order above.
-- #25, #26 and #27 resolve the open questions below; any of them may
-  supersede part of this ADR.
+- #25, #26 and #27 resolve the open questions below. A spike that changes
+  this decision does so with a new ADR that supersedes this one.
 
 ## Alternatives considered
 
@@ -134,8 +137,9 @@ runtime.
 - **EventKit in `harvey-mcp`.** Rejected: the TCC prompt would be
   attributed to Claude Desktop as the responsible process, which confuses
   the permission, and `harvey-mcp` has no UI to approve it.
-- **EventKit in the widget.** Rejected: the widget is sandboxed and has no
-  UI to show the permission prompt.
+- **EventKit in the widget.** Rejected: the extension runs only briefly
+  under WidgetKit, cannot show the permission prompt, and would need its
+  own calendars entitlement and TCC grant on top of the app's.
 
 ## Evidence (spike results, measurements, links to prototype code)
 
