@@ -1,0 +1,9 @@
+# tools
+sqlfluff==3.4.0
+yamllint==1.37.1  # inline comment
+Pygments[plugins]==2.19.2 ; python_version >= "3.9"
+pinned==1.2.3 \
+    --hash=sha256:aaaa \
+    --hash=sha256:bbbb
+-r requirements-dev.in
+
