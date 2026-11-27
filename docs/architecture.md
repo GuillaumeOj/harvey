@@ -5,7 +5,7 @@ See `SPEC.md` §6.3, §6.4, §12.1 and §12.2 for the rationale.
 ## Crates
 
 | Crate | Kind | Responsibility |
-|---|---|---|
+| --- | --- | --- |
 | `harvey-db` | lib | Connection factory, migrations, SQL repositories, ids and clock primitives (`Id`, `Clock`). |
 | `harvey-core` | lib | Domain model, services, business rules. No Tauri, no EventKit, no direct filesystem. Owns `FileResolver` and the `Repository` unit-of-work trait. |
 | `harvey-calendar` | lib | `CalendarProvider` trait, EventKit actor (macOS) and a fake. |
@@ -19,7 +19,7 @@ See `SPEC.md` §6.3, §6.4, §12.1 and §12.2 for the rationale.
 
 ## Dependency direction
 
-```
+```text
 harvey-mcp ─┐
 harvey-ffi ─┼─> harvey-core ─┬─> harvey-calendar ─> harvey-db
 harvey-bench┘                ├─> harvey-backup   ─> harvey-db
@@ -56,7 +56,7 @@ Always pass `--locked`.
 cargo build  --workspace --locked [--features fake-platform]
 cargo test   --workspace --locked [--features fake-platform]
 cargo clippy --workspace --all-targets [--all-features] --locked -- -D warnings
-scripts/fmt.sh [--check]   # rustfmt from the nightly pinned in rustfmt-nightly.toolchain
+scripts/fmt.sh [--check] [files…]   # rustfmt from the nightly pinned in rustfmt-nightly.toolchain
 ```
 
 The stable toolchain is pinned in `rust-toolchain.toml`; the nightly is used only by rustfmt.

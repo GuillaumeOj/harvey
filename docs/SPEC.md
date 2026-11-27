@@ -1,16 +1,16 @@
 # Harvey — v1 Specification
 
 | | |
-|---|---|
+| --- | --- |
 | **Status** | Draft v0.2 (after multi-angle review) |
 | **Date** | 2026-11-27 |
 | **Audience** | Developers, product owner, end user |
 | **Product language** | UI in French · this document in English |
 
-### Revision history
+## Revision history
 
 | Version | Changes |
-|---|---|
+| --- | --- |
 | 0.1 | Initial draft. |
 | 0.2 | Review pass (technical feasibility, French legal/billing, consistency/testability, security/privacy). Main changes: explicit process & sandbox model (§6.8); EventKit only in the app + login item; shared-DB rules (single migrator, `BEGIN IMMEDIATE`, maintenance lock, online-backup restore); **encrypted backups**; guarded MCP (off by default, read-only by default, approval queue, exclusion flag); calendar privacy defaults; semantic statuses; invoice rules (gapless series, immutable snapshot, credit notes, advance invoices for provisions, débours/frais/droit de plaidoirie, VAT treatments, e-invoicing readiness); timezone/date conventions; timer model; IPC/CSP/URL-scheme hardening; custom release pipeline; macOS e2e; CI secret isolation; milestone re-ordering. |
 
@@ -46,7 +46,7 @@ The target user is an independent lawyer (*avocat·e*) practising in France. The
 ### 1.4 Non-goals for v1 — and the extension point that keeps each cheap later
 
 | Not in v1 | Why it stays easy later |
-|---|---|
+| --- | --- |
 | Mobile app | All logic in `harvey-core` (no Tauri dependency); an HTTP API can wrap the same services. Calendar already syncs to iPhone via iCloud. |
 | Email integration (Mail.app, IMAP) | `note` already supports an email type and file links; an ingester can call `harvey-core`. |
 | Multi-user | `user` table + `created_by`/`updated_by` on every row from day one; UUIDv7 keys; `change_log` table. |
@@ -63,7 +63,7 @@ The target user is an independent lawyer (*avocat·e*) practising in France. The
 ## 2. Glossary
 
 | Term (spec) | UI label (FR) | Definition |
-|---|---|---|
+| --- | --- | --- |
 | Person | Personne | A natural person. |
 | Company | Société | A legal entity (SIREN, legal form…). |
 | Affiliation | Rattachement | Link between a person and a company with a role (gérant, salarié, représentant légal…). |
@@ -96,7 +96,7 @@ Priorities: **M** = must (v1), **S** = should (v1 if time allows), **C** = could
 ### 3.1 Contacts — persons, companies, clients, prospects
 
 | ID | Pri | Requirement |
-|---|---|---|
+| --- | --- | --- |
 | FR-01 | M | Create, edit, archive and restore **persons** (civility, first/last name, profession, emails, phones, postal addresses, rich-text notes). Birth date, birth place and nationality are **optional fields**, hidden until enabled (data minimisation). |
 | FR-02 | M | Create, edit, archive and restore **companies** (name, legal form, SIREN/SIRET, VAT number, registered address, website, rich-text notes). |
 | FR-03 | M | Link a company to **one or many persons** with a role and optional start/end dates; a person may be affiliated with several companies. Both sides show the links. |
@@ -111,7 +111,7 @@ Priorities: **M** = must (v1), **S** = should (v1 if time allows), **C** = could
 ### 3.2 Configurable reference lists
 
 | ID | Pri | Requirement |
-|---|---|---|
+| --- | --- | --- |
 | FR-10 | M | On first start, Harvey seeds **French defaults** for each reference list (Appendix A). |
 | FR-11 | M | The user can **add, rename, recolor, reorder** values in every list and **delete** values not in use. A value in use can be **deactivated** (hidden from pickers, kept on existing records). |
 | FR-12 | M | Lists: prospect statuses, client statuses, matter statuses, invoice statuses, provision statuses, practice areas, note types, party roles, affiliation roles, event types, prospect sources, activities, payment methods. |
@@ -121,7 +121,7 @@ Priorities: **M** = must (v1), **S** = should (v1 if time allows), **C** = could
 ### 3.3 Matters (dossiers)
 
 | ID | Pri | Requirement |
-|---|---|---|
+| --- | --- | --- |
 | FR-20 | M | Create, edit, archive and restore matters: client, title, practice area, status, opened/closed dates, rich-text summary. Moving to a `closed` semantic status sets `closed_at`; reopening clears it. |
 | FR-21 | M | **Reference** assigned at creation from the active matter numbering scheme (§3.4); unique; editable manually (uniqueness enforced; the generator skips taken values). |
 | FR-22 | M | **Parties**: exactly one of person / company / free name, with a role (Appendix A), plus court, chamber, case number (n° RG), other references. |
@@ -131,7 +131,7 @@ Priorities: **M** = must (v1), **S** = should (v1 if time allows), **C** = could
 ### 3.4 Matter reference numbering
 
 | ID | Pri | Requirement |
-|---|---|---|
+| --- | --- | --- |
 | FR-30 | M | A numbering scheme is a **pattern** of literal text and tokens: `{YYYY}`, `{YY}`, `{MM}`, `{SEQ:n}`, `{AREA}`, `{CLIENT}` (grammar and validation in Appendix B). |
 | FR-31 | M | Sequence reset: never, yearly, monthly; scope: global or per practice area. Invalid combinations are refused (e.g. per-area scope without `{AREA}`, monthly reset without `{MM}` and a year token). |
 | FR-32 | M | Presets: `{YYYY}-{SEQ:4}` → `2026-0042` (default), `{YY}/{SEQ:3}` → `26/042`, `{AREA}-{YYYY}-{SEQ:3}` → `FAM-2026-001`. |
@@ -141,7 +141,7 @@ Priorities: **M** = must (v1), **S** = should (v1 if time allows), **C** = could
 ### 3.5 Rich-text editing (everywhere)
 
 | ID | Pri | Requirement |
-|---|---|---|
+| --- | --- | --- |
 | FR-40 | M | **Every free-text field** (notes, matter summary, person/company notes, time-entry descriptions, invoice notes, event descriptions…) uses the same block editor, sized for very long content. |
 | FR-41 | M | Notion-like experience: `/` slash menu, headings, bulleted/numbered/check lists, toggles, quotes, callouts, code, tables, dividers, block drag-and-drop, markdown shortcuts, undo/redo, paste from Word/web keeping structure. On paste, remote images are stripped (no network fetch) and links are filtered to the allowed schemes (§6.10). |
 | FR-42 | M | `@` mentions link to Harvey entities (person, company, matter); `@date` inserts a date. |
@@ -152,7 +152,7 @@ Priorities: **M** = must (v1), **S** = should (v1 if time allows), **C** = could
 ### 3.6 Notes & interaction log
 
 | ID | Pri | Requirement |
-|---|---|---|
+| --- | --- | --- |
 | FR-50 | M | A note has a type, a date/time, optional duration, a title and rich-text body. |
 | FR-51 | M | Attached to a client and/or a matter (at least one; if both, the matter must belong to that client). |
 | FR-52 | M | Timeline view (reverse chronological) on client and matter pages, filterable by type. |
@@ -161,7 +161,7 @@ Priorities: **M** = must (v1), **S** = should (v1 if time allows), **C** = could
 ### 3.7 File links
 
 | ID | Pri | Requirement |
-|---|---|---|
+| --- | --- | --- |
 | FR-60 | M | Link one or many **existing** files or folders (native picker or drag & drop from Finder) to exactly one client or matter (or as the attachment of a fee agreement / invoice). **No copy** — reference only. |
 | FR-61 | M | Store path, display name, size, type and a macOS **bookmark** so moved/renamed files are re-resolved when possible. Only Harvey.app resolves bookmarks (not MCP, not the widget). Bookmarks do not resolve after restoring on another Mac → relink. |
 | FR-62 | M | Actions: open (default app), reveal in Finder, Quick Look, unlink. **Open is refused** for executables, app bundles, installers, scripts and redirect files (`.app`, `.pkg`, `.command`, `.terminal`, `.sh`, `.webloc`, `.inetloc`, `.fileloc`…) and for quarantined files — only Reveal and Quick Look are offered. |
@@ -170,7 +170,7 @@ Priorities: **M** = must (v1), **S** = should (v1 if time allows), **C** = could
 ### 3.8 Time tracking
 
 | ID | Pri | Requirement |
-|---|---|---|
+| --- | --- | --- |
 | FR-70 | M | **Timer**: start on a matter or unassigned, pause/resume, stop. The time entry is created **at start** with `state = running` (single running entry enforced by a partial unique index); stop sets `ended_at` and finalises it. Starting another timer stops the current one. Survives app restarts and runs while the app is closed (timestamps, not a counter). |
 | FR-71 | M | **Manual entry**: work date, matter, duration or start/end, description (rich text), billable flag, activity. |
 | FR-72 | M | **Rounding** (none / 1 / 6 / 10 / 15 min; up or nearest) applied when an entry is saved, to timer and manual entries alike; recomputed on edit until the entry is invoiced. Raw and rounded durations stored. Zero-length entries are discarded; negative durations rejected. |
@@ -182,7 +182,7 @@ Priorities: **M** = must (v1), **S** = should (v1 if time allows), **C** = could
 ### 3.9 Desktop widget & menu bar timer
 
 | ID | Pri | Requirement |
-|---|---|---|
+| --- | --- | --- |
 | FR-80 | M | A **macOS WidgetKit widget** (small and medium) on the desktop and in Notification Center. |
 | FR-81 | M | Shows the running timer (matter reference, elapsed) with **Stop**, or one-tap **Start** buttons for pinned and recent matters. Interactive via App Intents (macOS 14+) — Harvey does not need to be open. Pause is not offered in the widget; a paused timer is shown as "En pause" with a Resume button. Widgets become available after Harvey.app has been launched once from /Applications. |
 | FR-82 | M | A **menu bar item** shows elapsed time when a timer runs and offers: start on recent/pinned matter, search a matter, pause/stop, open Harvey, pending-approval count (§4). |
@@ -195,14 +195,14 @@ Priorities: **M** = must (v1), **S** = should (v1 if time allows), **C** = could
 #### 3.10.1 Fee agreements
 
 | ID | Pri | Requirement |
-|---|---|---|
+| --- | --- | --- |
 | FR-90 | M | **Fee agreement** (convention d'honoraires) per matter, versioned (draft / signed / amendment — several versions per matter, one current). Kind: hourly, flat fee, subscription (*abonnement*), mixed (fixed or time-based + success fee). A **success fee alone is not allowed** (prohibition of *pacte de quota litis*). Fields: rates (`fee_rate` table: default + per activity), flat amounts, success-fee terms and %, scope of work, expected expenses, signed date, file link to the signed document. |
 | FR-91 | M | Warning when billable time or an invoice exists on a matter without a signed agreement. |
 
 #### 3.10.2 Invoices, credit notes, advance invoices
 
 | ID | Pri | Requirement |
-|---|---|---|
+| --- | --- | --- |
 | FR-92 | M | Invoice types: **invoice**, **advance invoice** (provision / *facture d'acompte*), **credit note** (*avoir*, full or partial, linked to the original). One client per invoice; matter optional but every time line carries its matter (balances are attributed per line). |
 | FR-93 | M | Lines with kinds: `fee_time` (from selected unbilled time entries of that client), `fee_flat`, `expense` (*frais*, VAT 20 % by default), `disbursement` (*débours*, forced 0 % with the mention "Débours – art. 267 II-2° CGI", supporting file link), `pleading_fee` (*droit de plaidoirie*, 0 %), `advance_deduction` (deducts a paid advance invoice, with its number, HT and VAT), `free`. |
 | FR-94 | M | **VAT treatment per invoice**: normal (default), reverse charge EU B2B (mention "Autoliquidation", client EU VAT number required), outside French VAT scope for non-EU clients (art. 259 B), franchise (mention "TVA non applicable, art. 293 B du CGI"). Firm-level VAT regime setting: cash basis (default for services), debit option (adds the "option pour le paiement de la taxe d'après les débits" mention), franchise. VAT is computed **per rate on the summed HT** of the lines. |
@@ -214,7 +214,7 @@ Priorities: **M** = must (v1), **S** = should (v1 if time allows), **C** = could
 #### 3.10.3 Payments & balances
 
 | ID | Pri | Requirement |
-|---|---|---|
+| --- | --- | --- |
 | FR-180 | M | **Payments** against an invoice or advance invoice: date, amount, method (Appendix A), reference; partial payments allowed. On issued invoices a payment is **reversed** (negative entry with reason), never deleted. Warning on cash payments above the legal ceiling (€1,000 for French-resident payers). |
 | FR-181 | M | Balances per matter and per client, with exact formulas (§7.4): billed TTC, paid, outstanding, advances received not yet deducted, unbilled time value (shown as "information" on flat-fee/subscription matters). Overdue invoices highlighted. |
 | FR-182 | M | **Client funds held through CARPA are not tracked** in v1 and never appear in fee balances. Payment methods distinguish "Prélèvement autorisé sur fonds CARPA" and "Rétribution AJ (CARPA)". |
@@ -222,14 +222,14 @@ Priorities: **M** = must (v1), **S** = should (v1 if time allows), **C** = could
 #### 3.10.4 E-invoicing readiness (reform 2026–2027)
 
 | ID | Pri | Requirement |
-|---|---|---|
+| --- | --- | --- |
 | FR-183 | M | v1 **tracks** invoices (it does not submit e-invoices). Data needed later is stored from v1: client SIREN and professional/consumer category, operation category ("prestations de services"), immutable snapshot, payment date and amount per invoice (e-reporting of payments for services), and fields for the approved platform (*plateforme agréée*) invoice ID and lifecycle status (déposée, rejetée, acceptée, encaissée…). |
 | FR-184 | C | Factur-X (PDF/A-3 + CII) generation and platform connector — required before **1 Sept 2027** for French B2B invoices; to schedule as v1.x. |
 
 ### 3.11 Calendar & reminders (EventKit)
 
 | ID | Pri | Requirement |
-|---|---|---|
+| --- | --- | --- |
 | FR-100 | M | Settings list **all** EventKit calendars and reminder lists with color, account and **account type**. Non-local, shared, Exchange/CalDAV and subscribed calendars carry a warning; a one-time notice explains that iCloud Calendar is not end-to-end encrypted, even with Advanced Data Protection. |
 | FR-101 | M | The user chooses **which calendars and lists Harvey may use** (enabled set) and a default calendar **per event type** (the event-type list is editable) and a default reminder list. Changeable at any time. |
 | FR-102 | M | Create an **event** from a client or matter (or the Agenda view): type, title, start/end or all-day, location, alarms, rich-text description, target calendar (enabled set only). **Privacy defaults**: the title sent to EventKit follows a template, default `{REF} – {TYPE}` (no party names); description export is **off** by default (only the `harvey://` link is written); location is sent as entered. Per-item override. |
@@ -243,7 +243,7 @@ Priorities: **M** = must (v1), **S** = should (v1 if time allows), **C** = could
 ### 3.12 Search
 
 | ID | Pri | Requirement |
-|---|---|---|
+| --- | --- | --- |
 | FR-110 | M | Global search palette (`⌘K`) across persons, companies, clients, matters (reference, RG number), **matter parties (incl. free names)**, affiliations, notes (full text), time entries, invoices. Archived and closed records are included in a separate group (needed to check former parties). |
 | FR-111 | M | Accent- and case-insensitive, prefix matching, results grouped by type, keyboard navigable. |
 | FR-112 | M | The palette also exposes actions: new client, new matter, start timer on…, new event… |
@@ -251,13 +251,13 @@ Priorities: **M** = must (v1), **S** = should (v1 if time allows), **C** = could
 ### 3.13 Dashboard
 
 | ID | Pri | Requirement |
-|---|---|---|
+| --- | --- | --- |
 | FR-120 | M | Home screen: events today and next 7 days, due/overdue reminders, running timer, time today/this week, unbilled time value, unpaid/overdue invoices, active prospects by status, recent matters, backup status, MCP pending approvals, calendar sync warnings. A minimal shell exists from M1 and gains cards as features land. |
 
 ### 3.14 Backup & restore
 
 | ID | Pri | Requirement |
-|---|---|---|
+| --- | --- | --- |
 | FR-130 | M | Onboarding asks for a backup folder (suggesting `iCloud Drive/Harvey Backups`; a local or external-disk folder is offered with equal prominence); skippable, with a persistent warning until set. |
 | FR-131 | M | **Backups are encrypted** (age / X25519, or AES-256-GCM — chosen in M0 ADR). The key is stored in the macOS Keychain; at setup the user must save a **recovery key** (printable/exportable) — without it, backups cannot be restored on another Mac. The live DB is not encrypted in v1. |
 | FR-132 | M | Procedure: `VACUUM INTO` a temp file in the local container → `PRAGMA integrity_check` → encrypt → write to a hidden temp name in the destination (with file coordination) → `fsync` → rename to `Harvey-YYYYMMDD-HHMMSS.harvey-backup`. A small `manifest.json` (app version, schema version, SHA-256 of the encrypted file, record counts) is embedded *inside* the encrypted archive. |
@@ -273,7 +273,7 @@ Priorities: **M** = must (v1), **S** = should (v1 if time allows), **C** = could
 ### 3.15 Settings window
 
 | ID | Pri | Requirement |
-|---|---|---|
+| --- | --- | --- |
 | FR-140 | M | A **separate settings window** on top of the main window, opened from a shortcut at the bottom of the sidebar, from the app menu and with `⌘,`. |
 | FR-141 | M | Sections: Général (firm profile: name, address, SIREN/SIRET, VAT number, bar), Listes de référence, Numérotation (matters, invoices), Agenda & rappels (sources, defaults, title template, privacy), Temps & facturation (rates, rounding, VAT regime & rates, payment terms, late-payment rate, mediator), Sauvegarde (folder, encryption & recovery key, schedule, retention, restore), Connecteur Claude (consent, enable, permissions, exclusions, activity log), Widget & barre de menus, Démarrage (login item), À propos. |
 | FR-142 | M | Every setting is declared in a typed **settings registry** (key, type, default, scope). Device-local settings (backup-folder bookmark, Keychain references, window state) are stored outside the DB so a restore does not overwrite them. |
@@ -281,7 +281,7 @@ Priorities: **M** = must (v1), **S** = should (v1 if time allows), **C** = could
 ### 3.16 Onboarding & background operation
 
 | ID | Pri | Requirement |
-|---|---|---|
+| --- | --- | --- |
 | FR-150 | M | First-start flow: welcome → firm profile → backup folder + recovery key → calendar & reminders access + selection → numbering preset → done. Each step is skippable and reachable in Settings; steps are added in the milestone that delivers their feature. |
 | FR-151 | M | Harvey registers as a **login item** (`SMAppService.mainApp`, user-toggleable) and keeps running in the menu bar when its window is closed, so queued calendar operations and backups run. |
 
@@ -292,7 +292,7 @@ Priorities: **M** = must (v1), **S** = should (v1 if time allows), **C** = could
 ### 4.1 Requirements
 
 | ID | Pri | Requirement |
-|---|---|---|
+| --- | --- | --- |
 | FR-160 | M | An **MCP server** lets the user add Harvey as a connector in Claude Desktop to query and, when allowed, update their data in natural language. |
 | FR-161 | M | Binary `harvey-mcp` in the app bundle, **stdio** transport, official Rust SDK (`rmcp`). stdout carries protocol data only; stderr carries no personal data. |
 | FR-162 | M | **Off by default.** Enabling it requires an informed-consent screen (French) explaining that data read by Claude is sent to Anthropic's cloud (outside the EU), what Claude Desktop keeps locally, that *secret professionnel* applies, and recommending a plan with a data-processing agreement, no training on data and limited retention. Consent is stored with a date; disabling it makes `harvey-mcp` refuse every call. |
@@ -308,7 +308,7 @@ Priorities: **M** = must (v1), **S** = should (v1 if time allows), **C** = could
 ### 4.2 Tools (v1)
 
 | Domain | Tools |
-|---|---|
+| --- | --- |
 | Search | `search`, `get_dashboard` |
 | Contacts | `list_clients`, `list_prospects`, `get_client`, `create_person`, `update_person`, `create_company`, `update_company`, `link_person_company`, `create_client`, `update_client`, `convert_prospect`*, `archive_entity`* (explicit `entity_type`) |
 | Matters | `list_matters`, `get_matter`, `create_matter`, `update_matter`, `add_matter_party` |
@@ -331,7 +331,7 @@ EventKit is used **only by Harvey.app** (final decision, see §6.8). Calendar wr
 ## 5. Non-functional requirements
 
 | ID | Category | Requirement |
-|---|---|---|
+| --- | --- | --- |
 | NFR-01 | Privacy | Local-first, works offline. No telemetry or analytics. Network traffic only through: macOS iCloud/EventKit sync of calendars the user enabled, iCloud Drive sync of the backup folder, and — only if the user enables it — the MCP connector, through which Claude Desktop sends the data it reads to Anthropic. |
 | NFR-02 | Confidentiality | *Secret professionnel* and GDPR (RGPD). Live DB protected by FileVault (checked at onboarding, warning if off); backups encrypted (FR-131); calendar titles minimal by default (FR-102); widget/menu bar show references only (FR-84). Logs, panic messages and error payloads never contain client data (redacting `Debug`/`Display`, custom panic hook, error *keys* not values). WebView persistent caches/storage disabled. |
 | NFR-03 | Integrity | Foreign keys on, WAL, `synchronous=NORMAL`, migrations only by Harvey.app inside `BEGIN EXCLUSIVE` after a local pre-migration snapshot; downgrade refused. |
@@ -370,7 +370,7 @@ flowchart LR
 ### 6.2 Technology choices
 
 | Concern | Choice | Notes |
-|---|---|---|
+| --- | --- | --- |
 | Desktop shell | **Tauri 2** | Native window, Rust backend, tray, multi-window (settings, tray popover). |
 | Frontend | **React 19 + TypeScript (strict) + Vite** | React because shadcn/ui and BlockNote are React-native. |
 | UI kit | **shadcn/ui + Tailwind CSS**, lucide icons | Themed with brand tokens (§8). |
@@ -388,7 +388,7 @@ flowchart LR
 
 ### 6.3 Repository layout
 
-```
+```text
 harvey/
 ├─ Cargo.toml                # workspace, exact-pinned deps
 ├─ rust-toolchain.toml       # pinned toolchain
@@ -442,7 +442,7 @@ harvey/
 ### 6.8 Process, sandbox and entitlement model (ADR-001)
 
 | Binary | Launched by | Sandboxed | Entitlements | May |
-|---|---|---|---|---|
+| --- | --- | --- | --- | --- |
 | `Harvey.app` | User / login item | **No** (Developer ID, hardened runtime) | App Group; calendars; reminders (Info.plist usage strings) | Everything; only process using EventKit, bookmarks, Keychain backup key, migrations, backup/restore |
 | Widget `.appex` | WidgetKit | **Yes** (required for extensions) | App sandbox, App Group | Timer operations through `harvey-ffi` only |
 | `harvey-mcp` | Claude Desktop | **No** | App Group only (team-prefixed) | DB access through `harvey-core` with `McpPolicyService` checks; no EventKit, no bookmarks, no backups |
@@ -483,7 +483,7 @@ Consequences: bookmarks are regular (app-scoped) bookmarks resolved by the app o
 ### 7.2 Tables
 
 | Table | Key columns |
-|---|---|
+| --- | --- |
 | `user` | id, display_name, email, is_active *(single seeded row in v1)* |
 | `firm_profile` | singleton: name, address, siren, siret, vat_number, bar, vat_regime (cash\|debit\|franchise), mediator, payment_terms, late_rate_bp |
 | `person` | id, civility, first_name, last_name, birth_date?, birth_place?, nationality?, profession, notes_json/_text, archived_at |
@@ -588,7 +588,7 @@ A worked example lives in `crates/harvey-core/tests/fixtures/balances.md` and is
 
 ### 9.1 Navigation
 
-```
+```text
 ┌───────────────┬──────────────────────────────────────────────┐
 │ ● Harvey      │  ⌘K Rechercher…            ⏱ 2026-0042 00:42 ■│
 │               ├──────────────────────────────────────────────┤
@@ -615,7 +615,7 @@ A worked example lives in `crates/harvey-core/tests/fixtures/balances.md` and is
 ### 9.2 Screens
 
 | Screen | Content |
-|---|---|
+| --- | --- |
 | Tableau de bord | Cards of FR-120. |
 | Clients / Prospects | Table (name, person/company, status, practice area, last activity), filters, "+ Nouveau". Prospects also as **kanban by status** (dropping on a `converted` column converts; on `lost` asks for a reason). |
 | Client detail | Header (name, status, contact points, quick actions). Tabs: Aperçu, Dossiers, Notes, Agenda, Fichiers, Facturation, Liens. |
@@ -642,7 +642,7 @@ A worked example lives in `crates/harvey-core/tests/fixtures/balances.md` and is
 All commands typed with `specta`; bindings generated into `ui/src/bindings.ts`; all return `Result<T, AppError>`; every command is listed in exactly one window capability.
 
 | Domain | Commands |
-|---|---|
+| --- | --- |
 | Contacts | `person_list/get/create/update/archive/restore/delete`, `company_*` (same), `affiliation_create/update/delete`, `client_list/get/create/update/archive/restore/delete`, `prospect_convert` |
 | Reference | `ref_list(list)`, `ref_create/update/reorder/deactivate/delete` |
 | Numbering | `numbering_get(target)`, `numbering_update`, `numbering_preview`, `numbering_set_next` |
@@ -667,7 +667,7 @@ Events: `entity_changed { entity, ids, source }`, `timer_changed`, `calendar_syn
 ## 11. Testing strategy
 
 | Level | Tooling | Scope | Gate |
-|---|---|---|---|
+| --- | --- | --- | --- |
 | Backend unit | `cargo test`, `cargo llvm-cov` | `harvey-core`, `harvey-db`, `harvey-backup`, `harvey-calendar` (logic with `FakeCalendarProvider`), `harvey-mcp` handlers & policy, `harvey-ffi`. `FakeClock` (incl. DST and midnight), fake `FileResolver`, fake `KeyStore`. Property tests for numbering; table-driven tests for VAT/rounding/balances. | **≥ 90 % line coverage** on these crates; `harvey-app` and `harvey-swift-bridge` (thin glue) ≥ 70 % |
 | Migrations | `cargo test` | All migrations from empty and from each released schema; `sqlx prepare --check`. | must pass |
 | Concurrency | `cargo test` (multi-process) | App + MCP + widget writers on one DB; restore while MCP writes; migration while MCP is connected. | must pass |
@@ -704,7 +704,7 @@ Events: `entity_changed { entity, ids, source }`, `timer_changed`, `calendar_syn
 ### 12.2 Tooling per language
 
 | Language | Format | Lint | Import sorting | Type check |
-|---|---|---|---|---|
+| --- | --- | --- | --- | --- |
 | Rust | `rustfmt` with `group_imports = "StdExternalCrate"`, `imports_granularity = "Module"` (pinned nightly rustfmt; editors/lefthook configured to use it via `rust-analyzer.rustfmt.overrideCommand`) | `clippy --all-targets --all-features --locked -D warnings` (+ selected pedantic) | rustfmt | `cargo check`, `sqlx prepare --check` |
 | TypeScript / React | **Biome** | **Biome** (recommended + a11y) | **Biome** organize imports | `tsc --noEmit` (strict) |
 | Swift | `swift-format` | `swift-format lint --strict` | `swift-format` (`OrderedImports`) | `xcodebuild build` |
@@ -718,7 +718,7 @@ Local: **lefthook** — format + lint on staged files at pre-commit, type checks
 Triggers: every `pull_request` and every `push` to `main`. Release jobs: protected tags only.
 
 | Job | Runner | Steps |
-|---|---|---|
+| --- | --- | --- |
 | `lint-rust` | ubuntu | fmt check, clippy (`fake-platform`), cargo-deny, sqlx check |
 | `lint-ui` | ubuntu | `bun install --frozen-lockfile`, biome ci, tsc |
 | `lint-swift` | macos | swift-format lint |
@@ -755,7 +755,7 @@ Distribution: direct DMG. Auto-update (Tauri updater) post-v1. Versioning: SemVe
 ## 14. Milestones
 
 | # | Milestone | Content | Exit criteria |
-|---|---|---|---|
+| --- | --- | --- | --- |
 | M0 | Foundations & spikes | Workspace, Tauri + React + bun scaffold, connection factory & shared-DB rules, migrations, `change_log`, settings registry, CI with all gates, exact-pin policy, Renovate, release pipeline skeleton (unsigned). **Spikes → ADRs**: EventKit actor via objc2; WidgetKit + UniFFI + App Group (size/memory budget); `harvey-mcp` opening the App Group DB when launched by Claude Desktop; `.mcpb` path strategy; macOS e2e with embedded WebDriver; BlockNote in WKWebView (paste, IME, drag); backup encryption library. | CI green; ADRs merged |
 | M0b | Brand | Brand identity, tokens, app icon (all appearances), menu bar icon. Parallel to M0, done before M1 UI. | Tokens consumed by UI and widget |
 | M1 | Contacts, editor & safety | Rich-text editor, persons, companies, affiliations, clients/prospects + conversion, reference lists with semantics, settings window, dashboard shell, onboarding (profile, backup), **encrypted backup & restore**, login item. | E2E 1 (M1 part), 2 (M1 part), 3, 8 |
@@ -812,7 +812,7 @@ Distribution: direct DMG. Auto-update (Tauri updater) post-v1. Versioning: SemVe
 ★ = default on creation. Semantics in brackets are fixed system meanings (renamable, not deletable).
 
 | List | Default values |
-|---|---|
+| --- | --- |
 | Prospect status | ★ Nouveau [open] · Contacté [open] · Rendez-vous fixé [open] · Proposition envoyée [open] · Converti [converted] · Perdu [lost] |
 | Client status | ★ Actif [active] · Inactif [inactive] · Ancien client [former] |
 | Matter status | ★ Ouvert [open] · En attente [open] · Médiation / négociation [open] · Audience fixée [open] · En délibéré [open] · En appel [open] · Exécution [open] · Clos [closed] |
@@ -829,7 +829,7 @@ Distribution: direct DMG. Auto-update (Tauri updater) post-v1. Versioning: SemVe
 
 ## Appendix B — Numbering pattern grammar & validation
 
-```
+```text
 pattern  := (literal | token)*
 token    := "{YYYY}" | "{YY}" | "{MM}" | "{SEQ:" digit+ "}" | "{AREA}" | "{CLIENT}"
 literal  := any characters except "{" (use "{{" for a literal brace)
