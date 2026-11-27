@@ -1,0 +1,14 @@
+[patch.crates-io]
+okpath = { path = "../okpath" }
+okver = "=1.0.0"
+range = "1.0"
+gitdep = { git = "https://github.com/a/b" }
+branch = { git = "https://github.com/a/b", branch = "main" }
+noversion = { features = ["a"] }
+
+[patch.'https://example.com/index']
+other = { version = "^1.2.3" }
+
+[replace]
+"foo:1.0.0" = { git = "https://github.com/a/foo" }
+bar = { path = "../bar" }

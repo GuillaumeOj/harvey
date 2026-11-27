@@ -3,7 +3,7 @@
 // Contract: .orchestrator/features/lint-and-format-tooling-lefthook-sqlfluf/api-contract.md
 // No network, no third-party dependency (Bun.TOML, node:fs).
 
-import { existsSync, readdirSync, readFileSync, statSync } from "node:fs";
+import { readdirSync, readFileSync, statSync } from "node:fs";
 import { basename, dirname, join, relative, resolve, sep } from "node:path";
 
 export interface Violation {
@@ -39,6 +39,7 @@ function isObject(value: unknown): value is Record<string, unknown> {
 }
 
 function describe(value: unknown): string {
+  if (value === undefined) return "(missing)";
   return typeof value === "string" ? value : JSON.stringify(value);
 }
 
@@ -66,6 +67,36 @@ function npmReason(spec: string): string {
   return "range; use an exact version x.y.z";
 }
 
+function checkNpmSpec(file: string, location: string, spec: unknown): Violation[] {
+  if (typeof spec !== "string") return [{ file, location, spec: describe(spec), reason: "must be a string" }];
+  // `catalog:` / `catalog:name` reference a catalog entry, which is itself checked (see checkPackageJson).
+  if (spec === "workspace:*" || /^catalog:[\w.-]*$/.test(spec) || EXACT_SEMVER.test(spec) || NPM_ALIAS.test(spec)) {
+    return [];
+  }
+  return [{ file, location, spec, reason: npmReason(spec) }];
+}
+
+function checkNpmMap(file: string, location: string, map: Record<string, unknown>): Violation[] {
+  return Object.entries(map).flatMap(([name, spec]) => checkNpmSpec(file, `${location}.${name}`, spec));
+}
+
+function checkNpmMapIfPresent(file: string, location: string, map: unknown): Violation[] {
+  if (map === undefined) return [];
+  if (!isObject(map)) return [{ file, location, spec: describe(map), reason: "must be an object" }];
+  return checkNpmMap(file, location, map);
+}
+
+/** `overrides` values are specs or nested objects (the `.` key pins the package itself); `$name` references a direct dependency. */
+function checkNpmOverrides(file: string, location: string, overrides: unknown): Violation[] {
+  if (overrides === undefined) return [];
+  if (!isObject(overrides)) return [{ file, location, spec: describe(overrides), reason: "must be an object" }];
+  return Object.entries(overrides).flatMap(([name, value]) => {
+    const at = `${location}.${name}`;
+    if (isObject(value)) return checkNpmOverrides(file, at, value);
+    return typeof value === "string" && /^\$[\w@/.-]+$/.test(value) ? [] : checkNpmSpec(file, at, value);
+  });
+}
+
 export function checkPackageJson(file: string, text: string, isRoot = false): Violation[] {
   let json: unknown;
   try {
@@ -76,19 +107,25 @@ export function checkPackageJson(file: string, text: string, isRoot = false): Vi
   if (!isObject(json)) throw new FileError(`${file}: package.json must be an object`);
 
   const violations: Violation[] = [];
-  for (const section of NPM_SECTIONS) {
-    const deps = json[section];
-    if (deps === undefined) continue;
-    if (!isObject(deps)) {
-      violations.push({ file, location: section, spec: describe(deps), reason: "must be an object" });
+  for (const section of NPM_SECTIONS) violations.push(...checkNpmMapIfPresent(file, section, json[section]));
+
+  // Overrides (nested), resolutions and catalogs pin transitive/shared versions: same rules as dependencies.
+  violations.push(...checkNpmOverrides(file, "overrides", json.overrides));
+  violations.push(...checkNpmMapIfPresent(file, "resolutions", json.resolutions));
+  const workspaces = isObject(json.workspaces) ? json.workspaces : {};
+  for (const [prefix, owner] of [
+    ["", json],
+    ["workspaces.", workspaces],
+  ] as const) {
+    violations.push(...checkNpmMapIfPresent(file, `${prefix}catalog`, owner.catalog));
+    const catalogs = owner.catalogs;
+    if (catalogs === undefined) continue;
+    if (!isObject(catalogs)) {
+      violations.push({ file, location: `${prefix}catalogs`, spec: describe(catalogs), reason: "must be an object" });
       continue;
     }
-    for (const [name, spec] of Object.entries(deps)) {
-      if (typeof spec !== "string") {
-        violations.push({ file, location: `${section}.${name}`, spec: describe(spec), reason: "must be a string" });
-      } else if (spec !== "workspace:*" && !EXACT_SEMVER.test(spec) && !NPM_ALIAS.test(spec)) {
-        violations.push({ file, location: `${section}.${name}`, spec, reason: npmReason(spec) });
-      }
+    for (const [name, catalog] of Object.entries(catalogs)) {
+      violations.push(...checkNpmMapIfPresent(file, `${prefix}catalogs.${name}`, catalog));
     }
   }
 
@@ -160,21 +197,30 @@ function checkCargoTables(file: string, prefix: string, tables: Record<string, u
   return violations;
 }
 
+/** `[patch.<registry>]` and `[replace]` entries follow the dependency rules. */
+function checkCargoPatches(file: string, toml: Record<string, unknown>): Violation[] {
+  const violations: Violation[] = [];
+  const add = (prefix: string, deps: unknown) => {
+    if (!isObject(deps)) return;
+    for (const [name, dep] of Object.entries(deps)) {
+      const violation = checkCargoDep(file, `${prefix}.${tomlKey(name)}`, dep);
+      if (violation) violations.push(violation);
+    }
+  };
+  add("replace", toml.replace);
+  if (isObject(toml.patch)) {
+    for (const [registry, deps] of Object.entries(toml.patch)) add(`patch.${tomlKey(registry)}`, deps);
+  }
+  return violations;
+}
+
 export function checkCargoToml(file: string, text: string): Violation[] {
   const toml = parseToml(file, text);
   const violations = checkCargoTables(file, "", toml);
-
-  const workspace = toml.workspace;
-  if (isObject(workspace) && isObject(workspace.dependencies)) {
-    for (const [name, dep] of Object.entries(workspace.dependencies)) {
-      const violation = checkCargoDep(file, `workspace.dependencies.${tomlKey(name)}`, dep);
-      if (violation) violations.push(violation);
-    }
-  }
-
-  const target = toml.target;
-  if (isObject(target)) {
-    for (const [cfg, tables] of Object.entries(target)) {
+  violations.push(...checkCargoPatches(file, toml));
+  if (isObject(toml.workspace)) violations.push(...checkCargoTables(file, "workspace.", toml.workspace));
+  if (isObject(toml.target)) {
+    for (const [cfg, tables] of Object.entries(toml.target)) {
       if (isObject(tables)) violations.push(...checkCargoTables(file, `target.'${cfg}'.`, tables));
     }
   }
@@ -305,7 +351,7 @@ export function checkWorkflow(file: string, text: string): Violation[] {
 export function checkBunfig(file: string, text: string): Violation[] {
   const install = parseToml(file, text).install;
   if (isObject(install) && install.exact === true) return [];
-  const spec = isObject(install) && "exact" in install ? describe(install.exact) : "(missing)";
+  const spec = describe(isObject(install) ? install.exact : undefined);
   return [{ file, location: "install.exact", spec, reason: "set [install] exact = true" }];
 }
 
@@ -317,7 +363,7 @@ export function checkRustToolchain(file: string, text: string): Violation[] {
     {
       file,
       location: "toolchain.channel",
-      spec: channel === undefined ? "(missing)" : describe(channel),
+      spec: describe(channel),
       reason: 'use a full version "1.x.y"',
     },
   ];
@@ -346,15 +392,10 @@ export function checkRequirements(file: string, text: string): Violation[] {
     }
     const entry = logical
       .replace(/(^|\s)#.*$/, "")
-      .replace(/(\s+--hash=\S+)+\s*$/, "")
+      .replace(/\s+--hash=\S+/g, "")
       .trim();
-    if (
-      entry === "" ||
-      /^(-[rcif]|--(?:requirement|constraint|index-url|extra-index-url|find-links|trusted-host|no-index|no-binary|only-binary|require-hashes|prefer-binary|pre))(?:[\s=]|$)/.test(
-        entry,
-      )
-    )
-      continue;
+    // Any other option line (-r, -c, --index-url, ...) is not a requirement; editable installs are.
+    if (entry === "" || (entry.startsWith("-") && !/^(-e|--editable)\b/.test(entry))) continue;
     if (!PIP_PIN.test(entry)) {
       violations.push({ file, location: `line ${startLine}`, spec: entry, reason: "use name==x.y.z" });
     }
@@ -408,7 +449,7 @@ export function checkRepo(root: string): { filesChecked: number; violations: Vio
   violations.sort(
     (a, b) =>
       a.file.localeCompare(b.file, "en") ||
-      a.location.localeCompare(b.location, "en") ||
+      a.location.localeCompare(b.location, "en", { numeric: true }) ||
       a.spec.localeCompare(b.spec, "en"),
   );
   return { filesChecked, violations };
@@ -438,7 +479,7 @@ function parseArgs(argv: string[]): { root?: string; json: boolean } {
     if (arg === "--json") json = true;
     else if (arg === "--root") {
       root = argv[++i];
-      if (root === undefined) throw new FileError("--root requires a directory");
+      if (root === undefined || root.startsWith("--")) throw new FileError("--root requires a directory");
     } else if (arg.startsWith("--root=")) {
       root = arg.slice("--root=".length);
       if (root === "") throw new FileError("--root requires a directory");
@@ -455,7 +496,7 @@ function main(argv: string[]): number {
   try {
     const args = parseArgs(argv);
     const root = resolve(args.root ?? defaultRoot());
-    if (!existsSync(root) || !statSync(root).isDirectory()) throw new FileError(`not a directory: ${root}`);
+    if (!statSync(root, { throwIfNoEntry: false })?.isDirectory()) throw new FileError(`not a directory: ${root}`);
 
     const { filesChecked, violations } = checkRepo(root);
     const ok = violations.length === 0;

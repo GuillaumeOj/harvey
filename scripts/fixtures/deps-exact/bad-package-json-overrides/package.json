@@ -1,0 +1,45 @@
+{
+  "name": "bad-overrides",
+  "private": true,
+  "packageManager": "bun@1.4.2",
+  "overrides": {
+    "a": "1.0.0",
+    "b": "$a",
+    "c": "^2",
+    "d": {
+      ".": "1.0.0",
+      "e": "~3.0.0",
+      "f": {
+        "g": "latest"
+      }
+    },
+    "h": 1
+  },
+  "resolutions": {
+    "ok": "1.0.0",
+    "x/y": ">=1.0.0"
+  },
+  "catalog": {
+    "ok": "1.0.0",
+    "c1": "^1.0.0"
+  },
+  "catalogs": {
+    "named": {
+      "ok": "1.0.0",
+      "c2": "1.x"
+    }
+  },
+  "workspaces": {
+    "packages": [
+      "ui"
+    ],
+    "catalog": {
+      "c3": "*"
+    },
+    "catalogs": {
+      "n": {
+        "c4": "github:a/b"
+      }
+    }
+  }
+}

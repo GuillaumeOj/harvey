@@ -4,6 +4,7 @@ import { tmpdir } from "node:os";
 import { join, resolve } from "node:path";
 import {
   checkCargoToml,
+  checkPackageJson,
   checkPackageSwift,
   checkRepo,
   checkRequirements,
@@ -99,6 +100,37 @@ describe("package.json", () => {
   });
 });
 
+describe("package.json overrides, resolutions and catalogs", () => {
+  test("rejects every non-exact value with its dotted path", () => {
+    expect(found("bad-package-json-overrides")).toEqual([
+      "package.json: catalog.c1",
+      "package.json: catalogs.named.c2",
+      "package.json: overrides.c",
+      "package.json: overrides.d.e",
+      "package.json: overrides.d.f.g",
+      "package.json: overrides.h",
+      "package.json: resolutions.x/y",
+      "package.json: workspaces.catalog.c3",
+      "package.json: workspaces.catalogs.n.c4",
+    ]);
+  });
+
+  test("accepts catalog: references (the catalog entries themselves are checked)", () => {
+    const text = JSON.stringify({
+      dependencies: { a: "catalog:", b: "catalog:named" },
+      workspaces: { catalog: { a: "1.0.0" } },
+    });
+    expect(checkPackageJson("package.json", text)).toEqual([]);
+  });
+
+  test("reports the offending spec", () => {
+    const specs = new Map(checkRepo(fixture("bad-package-json-overrides")).violations.map((v) => [v.location, v.spec]));
+    expect(specs.get("overrides.c")).toBe("^2");
+    expect(specs.get("overrides.h")).toBe("1");
+    expect(specs.get("overrides.d.f.g")).toBe("latest");
+  });
+});
+
 describe("Cargo.toml", () => {
   test("rejects every non-exact form", () => {
     expect(found("bad-cargo")).toEqual([
@@ -126,6 +158,17 @@ describe("Cargo.toml", () => {
     expect(specs.get("workspace.dependencies.tablerange")).toBe("1.2");
     expect(specs.get("workspace.dependencies.gitdep")).toBe("git = https://github.com/a/b");
     expect(specs.get("workspace.dependencies.noversion")).toBe("(no version)");
+  });
+
+  test("[patch.*] and [replace] follow the dependency rules", () => {
+    expect(found("bad-cargo-patch")).toEqual([
+      "Cargo.toml: patch.'https://example.com/index'.other",
+      "Cargo.toml: patch.crates-io.branch",
+      "Cargo.toml: patch.crates-io.gitdep",
+      "Cargo.toml: patch.crates-io.noversion",
+      "Cargo.toml: patch.crates-io.range",
+      "Cargo.toml: replace.'foo:1.0.0'",
+    ]);
   });
 
   test("unparseable TOML is an error", () => {
@@ -239,6 +282,13 @@ describe("review fixes", () => {
     const { code, stdout } = cli(["--json", "--root", join(FIXTURES, "does-not-exist")]);
     expect(code).toBe(2);
     expect(JSON.parse(stdout).ok).toBe(false);
+  });
+});
+
+describe("requirements options", () => {
+  test("unlisted option lines are skipped but editable installs are rejected", () => {
+    expect(checkRequirements("requirements.txt", "--config-settings=x=y\n--no-deps\n")).toEqual([]);
+    expect(checkRequirements("requirements.txt", "-e git+https://example.com/a.git\n")).toHaveLength(1);
   });
 });
 
