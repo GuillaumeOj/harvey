@@ -6,6 +6,6 @@ import PackageDescription
 let package = Package(
     name: "swift-format-pin",
     dependencies: [
-        .package(url: "https://github.com/swiftlang/swift-format.git", exact: "604.0.0"),
+        .package(url: "https://github.com/swiftlang/swift-format.git", exact: "604.0.0")
     ]
 )
