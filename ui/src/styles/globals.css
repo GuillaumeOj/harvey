@@ -1,0 +1,286 @@
+/*
+ * Harvey theme. Every brand value comes from brand/generated/tokens.css (generated from brand/tokens.json, spec §8.1):
+ * this file only maps those variables to Tailwind. Never add a colour, size or weight literal here.
+ */
+@import "tailwindcss";
+@import "../../../brand/generated/tokens.css";
+@import "./fonts.css";
+
+/* Only scan code for class names: prose (README) must not add classes to the shipped CSS. */
+@source not "../../README.md";
+
+/* Same selectors as tokens.css: data-theme on <html> wins, otherwise the OS appearance. */
+@custom-variant dark {
+  &:where([data-theme="dark"], [data-theme="dark"] *) {
+    @slot;
+  }
+  @media (prefers-color-scheme: dark) {
+    &:where(:root:not([data-theme="light"]), :root:not([data-theme="light"]) *) {
+      @slot;
+    }
+  }
+}
+
+/*
+ * No colour, font, size, weight, line height or letter spacing outside the brand can be used by accident:
+ * type is set with the text-style utilities below.
+ */
+@theme {
+  --color-*: initial;
+  --font-*: initial;
+  --text-*: initial;
+  --font-weight-*: initial;
+  --leading-*: initial;
+  --tracking-*: initial;
+  --color-white: white;
+  --color-black: black;
+}
+
+@theme inline {
+  /* shadcn/ui variables (emitted by tokens.css) */
+  --color-background: var(--background);
+  --color-foreground: var(--foreground);
+  --color-card: var(--card);
+  --color-card-foreground: var(--card-foreground);
+  --color-popover: var(--popover);
+  --color-popover-foreground: var(--popover-foreground);
+  --color-primary: var(--primary);
+  --color-primary-foreground: var(--primary-foreground);
+  --color-secondary: var(--secondary);
+  --color-secondary-foreground: var(--secondary-foreground);
+  --color-muted: var(--muted);
+  --color-muted-foreground: var(--muted-foreground);
+  --color-accent: var(--accent);
+  --color-accent-foreground: var(--accent-foreground);
+  --color-destructive: var(--destructive);
+  --color-border: var(--border);
+  --color-input: var(--input);
+  --color-ring: var(--ring);
+  --color-sidebar: var(--sidebar);
+  --color-sidebar-foreground: var(--sidebar-foreground);
+  --color-sidebar-accent: var(--sidebar-accent);
+  --color-sidebar-accent-foreground: var(--sidebar-accent-foreground);
+  --color-sidebar-border: var(--sidebar-border);
+  --color-sidebar-ring: var(--sidebar-ring);
+
+  /* Harvey colour tokens */
+  --color-surface-fond: var(--surface-fond);
+  --color-surface-surface: var(--surface-surface);
+  --color-surface-barre-laterale: var(--surface-barre-laterale);
+  --color-surface-bordure: var(--surface-bordure);
+  --color-surface-separateur: var(--surface-separateur);
+  --color-texte-principal: var(--texte-principal);
+  --color-texte-secondaire: var(--texte-secondaire);
+  --color-marque-primaire: var(--marque-primaire);
+  --color-marque-sur-primaire: var(--marque-sur-primaire);
+  --color-marque-primaire-teinte: var(--marque-primaire-teinte);
+  --color-marque-primaire-teinte-texte: var(--marque-primaire-teinte-texte);
+  --color-marque-accent: var(--marque-accent);
+  --color-marque-accent-teinte: var(--marque-accent-teinte);
+  --color-statut-succes: var(--statut-succes);
+  --color-statut-succes-fond: var(--statut-succes-fond);
+  --color-statut-attention: var(--statut-attention);
+  --color-statut-attention-fond: var(--statut-attention-fond);
+  --color-statut-erreur: var(--statut-erreur);
+  --color-statut-erreur-fond: var(--statut-erreur-fond);
+  --color-statut-info: var(--statut-info);
+  --color-statut-info-fond: var(--statut-info-fond);
+  --color-liste-bordeaux: var(--liste-bordeaux);
+  --color-liste-bordeaux-fond: var(--liste-bordeaux-fond);
+  --color-liste-rouille: var(--liste-rouille);
+  --color-liste-rouille-fond: var(--liste-rouille-fond);
+  --color-liste-ocre: var(--liste-ocre);
+  --color-liste-ocre-fond: var(--liste-ocre-fond);
+  --color-liste-olive: var(--liste-olive);
+  --color-liste-olive-fond: var(--liste-olive-fond);
+  --color-liste-sauge: var(--liste-sauge);
+  --color-liste-sauge-fond: var(--liste-sauge-fond);
+  --color-liste-pin: var(--liste-pin);
+  --color-liste-pin-fond: var(--liste-pin-fond);
+  --color-liste-ardoise: var(--liste-ardoise);
+  --color-liste-ardoise-fond: var(--liste-ardoise-fond);
+  --color-liste-indigo: var(--liste-indigo);
+  --color-liste-indigo-fond: var(--liste-indigo-fond);
+  --color-liste-prune: var(--liste-prune);
+  --color-liste-prune-fond: var(--liste-prune-fond);
+  --color-liste-taupe: var(--liste-taupe);
+  --color-liste-taupe-fond: var(--liste-taupe-fond);
+  --color-neutre-50: var(--neutre-50);
+  --color-neutre-100: var(--neutre-100);
+  --color-neutre-200: var(--neutre-200);
+  --color-neutre-300: var(--neutre-300);
+  --color-neutre-400: var(--neutre-400);
+  --color-neutre-500: var(--neutre-500);
+  --color-neutre-600: var(--neutre-600);
+  --color-neutre-700: var(--neutre-700);
+  --color-neutre-900: var(--neutre-900);
+
+  /* Radii: Harvey names, plus shadcn's scale derived from --radius so vendored components work unchanged. */
+  --radius-petit: var(--rayon-petit);
+  --radius-moyen: var(--rayon-moyen);
+  --radius-grand: var(--rayon-grand);
+  --radius-sm: calc(var(--radius) - 4px);
+  --radius-md: calc(var(--radius) - 2px);
+  --radius-lg: var(--radius);
+  --radius-xl: calc(var(--radius) + 4px);
+
+  /* Spacing: the token steps; other steps keep Tailwind's 0.25rem base. */
+  --spacing-1: var(--espace-1);
+  --spacing-2: var(--espace-2);
+  --spacing-3: var(--espace-3);
+  --spacing-4: var(--espace-4);
+  --spacing-6: var(--espace-6);
+  --spacing-8: var(--espace-8);
+
+  /*
+   * Fonts: tokens.css already defines --font-ui/--font-lecture/--font-mono, so they are not re-declared here
+   * (that would emit self-referencing variables); the font-* utilities are declared below.
+   */
+  --default-font-family: var(--font-ui);
+  --default-mono-font-family: var(--font-mono);
+
+  --shadow-flottant: var(--ombre-flottant);
+
+  /* Motion */
+  --default-transition-duration: var(--duree);
+  --default-transition-timing-function: var(--courbe);
+}
+
+@utility font-ui {
+  font-family: var(--font-ui);
+}
+
+@utility font-lecture {
+  font-family: var(--font-lecture);
+}
+
+@utility font-mono {
+  font-family: var(--font-mono);
+}
+
+/* Text styles (brand/tokens.json "text"). Optional fields fall back to the CSS initial value. */
+@utility titre-page {
+  font-family: var(--texte-titre-page-police);
+  font-size: var(--texte-titre-page-taille);
+  line-height: var(--texte-titre-page-interligne);
+  font-weight: var(--texte-titre-page-graisse);
+  letter-spacing: var(--texte-titre-page-approche, normal);
+  text-transform: var(--texte-titre-page-casse, none);
+  max-width: var(--texte-titre-page-largeur-max, none);
+}
+
+@utility titre-section {
+  font-family: var(--texte-titre-section-police);
+  font-size: var(--texte-titre-section-taille);
+  line-height: var(--texte-titre-section-interligne);
+  font-weight: var(--texte-titre-section-graisse);
+  letter-spacing: var(--texte-titre-section-approche, normal);
+  text-transform: var(--texte-titre-section-casse, none);
+  max-width: var(--texte-titre-section-largeur-max, none);
+}
+
+@utility titre-carte {
+  font-family: var(--texte-titre-carte-police);
+  font-size: var(--texte-titre-carte-taille);
+  line-height: var(--texte-titre-carte-interligne);
+  font-weight: var(--texte-titre-carte-graisse);
+  letter-spacing: var(--texte-titre-carte-approche, normal);
+  text-transform: var(--texte-titre-carte-casse, none);
+  max-width: var(--texte-titre-carte-largeur-max, none);
+}
+
+@utility corps {
+  font-family: var(--texte-corps-police);
+  font-size: var(--texte-corps-taille);
+  line-height: var(--texte-corps-interligne);
+  font-weight: var(--texte-corps-graisse);
+  letter-spacing: var(--texte-corps-approche, normal);
+  text-transform: var(--texte-corps-casse, none);
+  max-width: var(--texte-corps-largeur-max, none);
+}
+
+@utility corps-fort {
+  font-family: var(--texte-corps-fort-police);
+  font-size: var(--texte-corps-fort-taille);
+  line-height: var(--texte-corps-fort-interligne);
+  font-weight: var(--texte-corps-fort-graisse);
+  letter-spacing: var(--texte-corps-fort-approche, normal);
+  text-transform: var(--texte-corps-fort-casse, none);
+  max-width: var(--texte-corps-fort-largeur-max, none);
+}
+
+@utility legende {
+  font-family: var(--texte-legende-police);
+  font-size: var(--texte-legende-taille);
+  line-height: var(--texte-legende-interligne);
+  font-weight: var(--texte-legende-graisse);
+  letter-spacing: var(--texte-legende-approche, normal);
+  text-transform: var(--texte-legende-casse, none);
+  max-width: var(--texte-legende-largeur-max, none);
+}
+
+@utility note-titre {
+  font-family: var(--texte-note-titre-police);
+  font-size: var(--texte-note-titre-taille);
+  line-height: var(--texte-note-titre-interligne);
+  font-weight: var(--texte-note-titre-graisse);
+  letter-spacing: var(--texte-note-titre-approche, normal);
+  text-transform: var(--texte-note-titre-casse, none);
+  max-width: var(--texte-note-titre-largeur-max, none);
+}
+
+@utility note-corps {
+  font-family: var(--texte-note-corps-police);
+  font-size: var(--texte-note-corps-taille);
+  line-height: var(--texte-note-corps-interligne);
+  font-weight: var(--texte-note-corps-graisse);
+  letter-spacing: var(--texte-note-corps-approche, normal);
+  text-transform: var(--texte-note-corps-casse, none);
+  max-width: var(--texte-note-corps-largeur-max, none);
+}
+
+@utility mono {
+  font-family: var(--texte-mono-police);
+  font-size: var(--texte-mono-taille);
+  line-height: var(--texte-mono-interligne);
+  font-weight: var(--texte-mono-graisse);
+  letter-spacing: var(--texte-mono-approche, normal);
+  text-transform: var(--texte-mono-casse, none);
+  max-width: var(--texte-mono-largeur-max, none);
+}
+
+@utility mono-petit {
+  font-family: var(--texte-mono-petit-police);
+  font-size: var(--texte-mono-petit-taille);
+  line-height: var(--texte-mono-petit-interligne);
+  font-weight: var(--texte-mono-petit-graisse);
+  letter-spacing: var(--texte-mono-petit-approche, normal);
+  text-transform: var(--texte-mono-petit-casse, none);
+  max-width: var(--texte-mono-petit-largeur-max, none);
+}
+
+@layer base {
+  * {
+    @apply border-border outline-ring/50;
+  }
+
+  body {
+    @apply bg-background text-foreground corps antialiased;
+  }
+}
+
+/* NFR-07: no motion when the user asks for less. */
+@media (prefers-reduced-motion: reduce) {
+  *,
+  ::before,
+  ::after {
+    /* biome-ignore-start lint/complexity/noImportantStyles: must beat transition/animation utility classes. */
+    animation-duration: 0s !important;
+    animation-delay: 0s !important;
+    animation-iteration-count: 1 !important;
+    transition-delay: 0s !important;
+    transition-duration: 0s !important;
+    scroll-behavior: auto !important;
+    /* biome-ignore-end lint/complexity/noImportantStyles: end of the reduced-motion overrides. */
+  }
+}
