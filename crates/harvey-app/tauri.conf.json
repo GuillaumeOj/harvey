@@ -1,0 +1,39 @@
+{
+  "$schema": "https://schema.tauri.app/config/2",
+  "productName": "Harvey",
+  "identifier": "com.harvey",
+  "build": {
+    "devUrl": "http://localhost:1420",
+    "frontendDist": "../../ui/dist",
+    "beforeDevCommand": "bun run --cwd ui dev",
+    "beforeBuildCommand": "bun run --cwd ui build"
+  },
+  "app": {
+    "withGlobalTauri": false,
+    "windows": [
+      {
+        "label": "main",
+        "title": "Harvey",
+        "width": 1200,
+        "height": 800,
+        "minWidth": 960,
+        "minHeight": 640,
+        "incognito": true,
+        "create": false
+      }
+    ],
+    "security": {
+      "freezePrototype": true,
+      "csp": "default-src 'self'; script-src 'self'; connect-src ipc: http://ipc.localhost; img-src 'self' data: asset:; style-src 'self' 'unsafe-inline'; object-src 'none'; frame-src 'none'; base-uri 'none'",
+      "devCsp": "default-src 'self'; script-src 'self'; connect-src ipc: http://ipc.localhost ws://localhost:1420 http://localhost:1420; img-src 'self' data: asset:; style-src 'self' 'unsafe-inline'; object-src 'none'; frame-src 'none'; base-uri 'none'"
+    }
+  },
+  "bundle": {
+    "active": true,
+    "targets": ["app"],
+    "icon": ["../../brand/icon/Harvey.icns", "../../brand/icon/preview/harvey-icon-default-1024.png"],
+    "macOS": {
+      "minimumSystemVersion": "14.0"
+    }
+  }
+}
