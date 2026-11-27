@@ -1,11 +1,14 @@
 # Git hooks. Install with `bunx lefthook install` (see docs/dev-setup.md).
 # Every command is the one CI (#21) runs, restricted here to the staged files.
 
+# `**/x` matches `x` at the root too.
+glob_matcher: doublestar
+
 pre-commit:
   parallel: true
   commands:
     rust:
-      glob: "*.rs"
+      glob: "**/*.rs"
       # Generated files and tooling-owned trees: never linted or formatted (reused below).
       exclude: &generated
         - "brand/generated/**"
@@ -20,7 +23,7 @@ pre-commit:
       stage_fixed: true
 
     biome:
-      glob: "*.{js,jsx,ts,tsx,mjs,cjs,json,jsonc,css}"
+      glob: "**/*.{js,jsx,ts,tsx,mjs,cjs,json,jsonc,css}"
       exclude: *generated
       run: bunx biome check --write --no-errors-on-unmatched --files-ignore-unknown=true {staged_files}
       stage_fixed: true
@@ -32,36 +35,30 @@ pre-commit:
       stage_fixed: true
 
     markdown:
-      glob: "*.md"
+      glob: "**/*.md"
       exclude: *generated
       # --no-globs: lint only the staged files, not the config's `globs` (the full-repo run).
       run: bunx markdownlint-cli2 --no-globs {staged_files}
 
     yaml:
-      glob: "*.{yml,yaml}"
+      glob: "**/*.{yml,yaml}"
       exclude: *generated
       run: scripts/yamllint.sh {staged_files}
 
     swift:
-      glob: "*.swift"
+      glob: "**/*.swift"
       exclude: *generated
       run: scripts/swift-format.sh format {staged_files} && scripts/swift-format.sh lint {staged_files}
       stage_fixed: true
 
     deps-exact:
       glob:
-        - "package.json"
         - "**/package.json"
-        - "Cargo.toml"
         - "**/Cargo.toml"
-        - "Package.swift"
         - "**/Package.swift"
-        - "bunfig.toml"
         - "**/bunfig.toml"
-        - "rust-toolchain.toml"
         - "**/rust-toolchain.toml"
-        - "rustfmt-nightly.toolchain"
-        - "requirements*.{in,txt}"
+        - "**/rustfmt-nightly.toolchain"
         - "**/requirements*.{in,txt}"
         - ".github/**/*.{yml,yaml}"
       run: bun scripts/deps-exact.ts

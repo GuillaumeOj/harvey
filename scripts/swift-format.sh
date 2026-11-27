@@ -31,7 +31,9 @@ excluded="brand/generated/"
 files=()
 if [[ $# -eq 0 ]]; then
   # Skip tracked files deleted from the working tree (not yet staged as deleted).
-  while IFS= read -r f; do if [[ -f "$f" ]]; then files+=("$f"); fi; done < <(git ls-files -- '*.swift' ":(exclude)$excluded")
+  while IFS= read -r f; do
+    if [[ -f "$f" ]]; then files+=("$f"); fi
+  done < <(git ls-files -- '*.swift' ":(exclude)$excluded")
 else
   for f in "$@"; do
     [[ "${f#./}" == "$excluded"* ]] || files+=("$f")
