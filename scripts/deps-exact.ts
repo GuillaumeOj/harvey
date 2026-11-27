@@ -21,7 +21,7 @@ export class FileError extends Error {}
 
 const SEMVER = String.raw`\d+\.\d+\.\d+(?:-[0-9A-Za-z.-]+)?(?:\+[0-9A-Za-z.-]+)?`;
 const EXACT_SEMVER = new RegExp(`^${SEMVER}$`);
-const CARGO_EXACT = new RegExp(`^=${SEMVER}$`);
+const CARGO_EXACT = new RegExp(`^=\\s*${SEMVER}$`);
 const BUN_PACKAGE_MANAGER = new RegExp(`^bun@${SEMVER}$`);
 const NPM_ALIAS = new RegExp(`^npm:(?:@[^/@]+/)?[^/@]+@${SEMVER}$`);
 const RUST_CHANNEL = /^1\.\d+\.\d+$/;
@@ -279,7 +279,8 @@ export function checkPackageSwift(file: string, text: string): Violation[] {
 export function checkWorkflow(file: string, text: string): Violation[] {
   const violations: Violation[] = [];
   for (const line of text.split(/\r?\n/)) {
-    const match = /^\s*(?:-\s+)?uses\s*:\s*(.*)$/.exec(line);
+    // Block form (`uses: x` / `- uses: x`) or flow form (`- { name: n, uses: x }`).
+    const match = /^\s*(?:-\s+)?uses\s*:\s*(.*)$/.exec(line) ?? /[{,]\s*uses\s*:\s*([^,}]*)/.exec(line);
     if (!match) continue;
     const value = (match[1] as string)
       .replace(/\s+#.*$/, "")
@@ -339,7 +340,8 @@ export function checkRequirements(file: string, text: string): Violation[] {
   for (let i = 0; i < lines.length; i++) {
     const startLine = i + 1;
     let logical = lines[i] as string;
-    while (logical.trimEnd().endsWith("\\") && i + 1 < lines.length) {
+    // Comment lines are never continued (pip does the same), so a trailing `\` there must not swallow the next entry.
+    while (!/^\s*#/.test(logical) && logical.trimEnd().endsWith("\\") && i + 1 < lines.length) {
       logical = `${logical.trimEnd().slice(0, -1)} ${lines[++i]}`;
     }
     const entry = logical
@@ -348,7 +350,7 @@ export function checkRequirements(file: string, text: string): Violation[] {
       .trim();
     if (
       entry === "" ||
-      /^(-[rci]|--(?:requirement|constraint|index-url|extra-index-url|no-binary|only-binary|require-hashes|prefer-binary))(?:[\s=]|$)/.test(
+      /^(-[rcif]|--(?:requirement|constraint|index-url|extra-index-url|find-links|trusted-host|no-index|no-binary|only-binary|require-hashes|prefer-binary|pre))(?:[\s=]|$)/.test(
         entry,
       )
     )
@@ -418,9 +420,14 @@ export function checkRepo(root: string): { filesChecked: number; violations: Vio
 
 function defaultRoot(): string {
   const scriptDir = dirname(import.meta.path);
-  const git = Bun.spawnSync(["git", "rev-parse", "--show-toplevel"], { cwd: scriptDir, stderr: "ignore" });
-  const top = git.success ? git.stdout.toString().trim() : "";
-  return top || dirname(scriptDir);
+  try {
+    const git = Bun.spawnSync(["git", "rev-parse", "--show-toplevel"], { cwd: scriptDir, stderr: "ignore" });
+    const top = git.success ? git.stdout.toString().trim() : "";
+    if (top) return top;
+  } catch {
+    // git is not installed: fall back to the script's parent directory.
+  }
+  return dirname(scriptDir);
 }
 
 function parseArgs(argv: string[]): { root?: string; json: boolean } {
@@ -432,8 +439,10 @@ function parseArgs(argv: string[]): { root?: string; json: boolean } {
     else if (arg === "--root") {
       root = argv[++i];
       if (root === undefined) throw new FileError("--root requires a directory");
-    } else if (arg.startsWith("--root=")) root = arg.slice("--root=".length);
-    else throw new FileError(`unknown argument: ${arg} (usage: deps-exact.ts [--root DIR] [--json])`);
+    } else if (arg.startsWith("--root=")) {
+      root = arg.slice("--root=".length);
+      if (root === "") throw new FileError("--root requires a directory");
+    } else throw new FileError(`unknown argument: ${arg} (usage: deps-exact.ts [--root DIR] [--json])`);
   }
   return { root, json };
 }

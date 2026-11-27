@@ -2,7 +2,14 @@ import { describe, expect, test } from "bun:test";
 import { mkdirSync, mkdtempSync, rmSync, writeFileSync } from "node:fs";
 import { tmpdir } from "node:os";
 import { join, resolve } from "node:path";
-import { checkCargoToml, checkPackageSwift, checkRepo, checkRequirements, type Violation } from "./deps-exact.ts";
+import {
+  checkCargoToml,
+  checkPackageSwift,
+  checkRepo,
+  checkRequirements,
+  checkWorkflow,
+  type Violation,
+} from "./deps-exact.ts";
 
 const SCRIPT = resolve(import.meta.dir, "deps-exact.ts");
 const FIXTURES = resolve(import.meta.dir, "fixtures/deps-exact");
@@ -14,7 +21,7 @@ function found(name: string): string[] {
 }
 
 function cli(args: string[]) {
-  const proc = Bun.spawnSync(["bun", SCRIPT, ...args]);
+  const proc = Bun.spawnSync([process.execPath, SCRIPT, ...args]);
   return { code: proc.exitCode, stdout: proc.stdout.toString(), stderr: proc.stderr.toString() };
 }
 
@@ -208,6 +215,13 @@ describe("review fixes", () => {
     expect(checkCargoToml("Cargo.toml", '[dev_dependencies]\nx = "1"\n')).toHaveLength(1);
   });
 
+  test("comment continuation, extra pip options, flow-style uses and spaced Cargo pins", () => {
+    expect(checkRequirements("requirements.txt", "# note \\\nfoo>=1\n")).toHaveLength(1);
+    expect(checkRequirements("requirements.txt", "--find-links x\n--no-index\n--pre\n-f x\nfoo==1.0\n")).toEqual([]);
+    expect(checkWorkflow("ci.yml", "steps:\n  - { uses: actions/checkout@v4 }\n")).toHaveLength(1);
+    expect(checkCargoToml("Cargo.toml", '[dependencies]\nx = "= 1.2.3"\n')).toEqual([]);
+  });
+
   test("skips nested worktrees and nested fixtures", () => {
     const root = mkdtempSync(join(tmpdir(), "deps-exact-nested-"));
     try {
@@ -290,6 +304,7 @@ describe("CLI", () => {
   test("exit 2 on usage errors", () => {
     expect(cli(["--bogus"]).code).toBe(2);
     expect(cli(["--root"]).code).toBe(2);
+    expect(cli(["--root="]).code).toBe(2);
     expect(cli(["--root", join(FIXTURES, "does-not-exist")]).code).toBe(2);
   });
 
