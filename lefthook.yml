@@ -17,7 +17,8 @@ pre-commit:
         # Tooling-owned trees, not project sources.
         - ".orchestrator/**"
         - ".claude/**"
-      run: scripts/fmt.sh
+      # Staged files are passed on to rustfmt so files not yet reachable from a crate root are formatted too.
+      run: scripts/fmt.sh {staged_files}
       stage_fixed: true
 
     biome:
