@@ -104,7 +104,8 @@ One file per window in `crates/harvey-app/capabilities/` (`main.json` today; `se
 `tray-popover.json` with #86). The test `capabilities_are_exclusive` runs `check_capabilities`
 (`src/capabilities.rs`) on the real files and `COMMANDS`:
 
-1. Each file has exactly one window label, no glob, and no `remote` key. No two files share a label.
+1. Each file has exactly one window label, no glob, and no `remote` or `webviews` key. No two files share a label.
+   Capability files are top-level `.json` files only (Tauri also loads `toml` and subfolders; the test refuses them).
 2. Permissions are `core:*` or `allow-<command>`. Plugin permissions, `deny-*` and unknown identifiers fail. There
    are no `tauri-plugin-*` crates.
 3. Every command is granted in exactly one file, and every `allow-*` names a command in `COMMANDS`.
@@ -136,11 +137,12 @@ gets its own wrapper command `<window>__<base>` (double underscore): `settings__
 ### Webview hardening (§6.10)
 
 - `tauri.conf.json`: the §6.10 CSP exactly, `devCsp` adding only the Vite dev server (`ws://localhost:1420`,
-  `http://localhost:1420`, applied by Tauri in dev builds only), `withGlobalTauri: false`, `freezePrototype: true`.
+  `http://localhost:1420`; on desktop Tauri loads `devUrl` directly, so the dev page runs without a CSP and only
+  bundled builds enforce `csp`), `withGlobalTauri: false`, `freezePrototype: true`.
 - Window `main` is `incognito` (non-persistent `WKWebsiteDataStore`: no cache, cookies or localStorage on disk) and
   `create: false`: `run()` builds it from its config entry to attach the navigation handlers.
 - Navigation lock-down (`src/navigation.rs`): `on_navigation` allows only the app origin (`tauri://localhost`,
-  `http(s)://tauri.localhost`) and, in debug builds only, the exact `devUrl` origin. `on_new_window` denies every
+  `http(s)://tauri.localhost`) and, in dev builds only (`tauri::is_dev()`), the exact `devUrl` origin. `on_new_window` denies every
   `window.open`. External links go through the Rust-side opener (#48).
-- No `devtools` feature. Debug builds refuse to start unless the identifier ends in `.dev` (`com.harvey.dev`), so
+- No `devtools` feature. Debug and dev builds (`debug_assertions` or `tauri::is_dev()`) refuse to start unless the identifier ends in `.dev` (`com.harvey.dev`), so
   development never touches production data (`bun run dev` applies `tauri.dev.conf.json`).

@@ -11,7 +11,7 @@ const APP_ORIGINS: &[(&str, &str)] = &[
 ];
 
 /// True if `url` belongs to the app: the bundled origin (any path), or the exact origin of `dev_url` (scheme, host
-/// and port) when given. `dev_url` is `Some` only in debug builds.
+/// and port) when given. `dev_url` is `Some` only in dev builds (see [`allowed_dev_url`]).
 pub fn is_app_url(url: &Url, dev_url: Option<&Url>) -> bool {
     if !url.username().is_empty() || url.password().is_some() {
         return false;
@@ -26,9 +26,13 @@ pub fn is_app_url(url: &Url, dev_url: Option<&Url>) -> bool {
     bundled || dev_url.is_some_and(|dev| url.origin() == dev.origin())
 }
 
-/// The dev server URL the navigation handler allows: the config `devUrl` in debug builds, `None` in release.
+/// The dev server URL the navigation handler allows: the config `devUrl` in dev builds, `None` otherwise.
+///
+/// "Dev" is Tauri's own switch (`tauri::is_dev()`, no `custom-protocol` feature), the one that decides whether the
+/// webview loads `devUrl` at all, not `debug_assertions`: `tauri dev --release` loads the dev server, and
+/// `tauri build --debug` serves the bundled assets.
 pub fn allowed_dev_url(dev_url: Option<&Url>) -> Option<Url> {
-    if cfg!(debug_assertions) {
+    if tauri::is_dev() {
         dev_url.cloned()
     } else {
         None
@@ -107,7 +111,7 @@ mod tests {
         let dev = url(DEV);
         assert_eq!(
             allowed_dev_url(Some(&dev)),
-            cfg!(debug_assertions).then(|| dev.clone())
+            tauri::is_dev().then(|| dev.clone())
         );
         assert_eq!(allowed_dev_url(None), None);
     }

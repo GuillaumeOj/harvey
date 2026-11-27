@@ -13,8 +13,9 @@ use tauri::{App, WebviewWindowBuilder};
 /// Label of the main window (`tauri.conf.json`, `capabilities/main.json`).
 pub const MAIN_WINDOW: &str = "main";
 
-/// A debug build must run with the dev identifier (`*.dev`), so it never touches production data. Release builds
-/// may use either identifier (`bun run tauri build --config crates/harvey-app/tauri.dev.conf.json` is allowed).
+/// A debug or dev build (`debug_assertions`, or Tauri's `is_dev()`: `tauri dev`, including `tauri dev --release`) must
+/// run with the dev identifier (`*.dev`), so it never touches production data. Bundled release builds may use either
+/// identifier (`bun run tauri build --config crates/harvey-app/tauri.dev.conf.json` is allowed).
 pub fn check_dev_identifier(identifier: &str, debug: bool) -> Result<(), String> {
     if debug && !identifier.ends_with(".dev") {
         return Err(format!(
@@ -27,8 +28,10 @@ pub fn check_dev_identifier(identifier: &str, debug: bool) -> Result<(), String>
 
 pub fn run() {
     let context = tauri::generate_context!();
-    if let Err(message) = check_dev_identifier(&context.config().identifier, cfg!(debug_assertions))
-    {
+    if let Err(message) = check_dev_identifier(
+        &context.config().identifier,
+        cfg!(debug_assertions) || tauri::is_dev(),
+    ) {
         eprintln!("harvey: {message}");
         std::process::exit(1);
     }

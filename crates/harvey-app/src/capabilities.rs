@@ -1,7 +1,7 @@
 //! Checker for `capabilities/*.json` (§6.10, §10, the WS3 convention).
 //!
 //! Rules:
-//! 1. Each file has exactly one window label, no glob, and no `remote` key. No two files share a label.
+//! 1. Each file has exactly one window label, no glob, and no `remote` or `webviews` key. No two files share a label.
 //! 2. Permissions are `core:*` or `allow-<command>`. Anything else (plugin permissions, `deny-*`, unknown) fails.
 //! 3. Every command is granted in exactly one file, and every `allow-*` names a known command.
 //! 4. A `<window>__<base>` wrapper is granted only in the file of window `<window>`, and `<base>` is a command.
@@ -24,6 +24,9 @@ pub struct Capability {
     /// Only its presence matters: remote URLs must never get IPC access.
     #[serde(default)]
     pub remote: Option<serde::de::IgnoredAny>,
+    /// Webview labels (Tauri grants the capability to these too, globs included). Must be empty: grants go by window.
+    #[serde(default)]
+    pub webviews: Vec<String>,
 }
 
 /// A permission entry: a plain identifier, or the object form `{ "identifier": …, "allow": … }`.
@@ -50,6 +53,8 @@ pub enum Violation {
     WindowGlob { file: String, label: String },
     /// Rule 1: no `remote` key.
     Remote { file: String },
+    /// Rule 1: no `webviews` key.
+    Webviews { file: String },
     /// Rule 1: two files for one window.
     SharedLabel { label: String, files: [String; 2] },
     /// Rule 2: neither `core:*` nor `allow-<command>`.
@@ -77,6 +82,7 @@ impl fmt::Display for Violation {
                 write!(f, "{file}: window label `{label}` is a glob")
             }
             Self::Remote { file } => write!(f, "{file}: `remote` is not allowed"),
+            Self::Webviews { file } => write!(f, "{file}: `webviews` is not allowed"),
             Self::SharedLabel {
                 label,
                 files: [a, b],
@@ -135,6 +141,9 @@ pub fn check_capabilities(files: &[Capability], commands: &[&str]) -> Result<(),
         let name = file.identifier.as_str();
         if file.remote.is_some() {
             violations.push(Violation::Remote { file: name.into() });
+        }
+        if !file.webviews.is_empty() {
+            violations.push(Violation::Webviews { file: name.into() });
         }
         let label = match file.windows.as_slice() {
             [label] => Some(label.as_str()),
@@ -251,12 +260,16 @@ mod tests {
         let mut files = Vec::new();
         for entry in std::fs::read_dir(&dir).expect("read capabilities/") {
             let path = entry.expect("dir entry").path();
-            if path.extension().is_some_and(|ext| ext == "json") {
-                let text = std::fs::read_to_string(&path).expect("read capability");
-                let file: Capability = serde_json::from_str(&text)
-                    .unwrap_or_else(|e| panic!("{}: {e}", path.display()));
-                files.push(file);
-            }
+            // Tauri loads `capabilities/**/*` (json, toml, json5): anything the checker cannot read must not exist.
+            assert!(
+                path.is_file() && path.extension().is_some_and(|ext| ext == "json"),
+                "{}: capability files must be top-level `.json` files",
+                path.display()
+            );
+            let text = std::fs::read_to_string(&path).expect("read capability");
+            let file: Capability =
+                serde_json::from_str(&text).unwrap_or_else(|e| panic!("{}: {e}", path.display()));
+            files.push(file);
         }
         assert!(!files.is_empty(), "no capability file in {}", dir.display());
         if let Err(violations) = check_capabilities(&files, COMMANDS) {
@@ -404,6 +417,22 @@ mod tests {
         assert_eq!(
             violations(&files, &["app_info"]),
             [Violation::Remote {
+                file: "main".into()
+            }]
+        );
+    }
+
+    #[test]
+    fn rejects_webviews() {
+        let files = [cap(json!({
+            "identifier": "main",
+            "windows": ["main"],
+            "webviews": ["*"],
+            "permissions": ["allow-app-info"],
+        }))];
+        assert_eq!(
+            violations(&files, &["app_info"]),
+            [Violation::Webviews {
                 file: "main".into()
             }]
         );

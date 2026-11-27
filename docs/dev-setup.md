@@ -21,7 +21,8 @@ bun run dev
 
 This runs `tauri dev --config crates/harvey-app/tauri.dev.conf.json`: it starts Vite on `http://localhost:1420`
 (`bun run --cwd ui dev`) and opens the **Harvey Dev** window, with the dev identifier `com.harvey.dev`, so it never
-touches production data. A debug build without the dev overlay refuses to start (it would use `com.harvey`).
+touches production data. A debug or dev build without the dev overlay (`bun run tauri dev`, even with `--release`)
+refuses to start (it would use `com.harvey`).
 
 `bun run tauri …` is the raw Tauri CLI (pinned `@tauri-apps/cli`).
 
