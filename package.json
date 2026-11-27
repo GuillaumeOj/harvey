@@ -1,0 +1,12 @@
+{
+  "name": "harvey",
+  "private": true,
+  "workspaces": [
+    "ui"
+  ],
+  "packageManager": "bun@1.4.2",
+  "trustedDependencies": [],
+  "devDependencies": {
+    "@biomejs/biome": "2.6.9"
+  }
+}

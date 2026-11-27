@@ -6,3 +6,4 @@ coverage/
 lcov.info
 *.profraw
 *.profdata
+*.tsbuildinfo
