@@ -14,7 +14,7 @@ bun install --frozen-lockfile
 Then, from the repository root:
 
 | Command | What it does |
-|---|---|
+| --- | --- |
 | `bun run --cwd ui dev` | Vite dev server on port 1420 (fails if the port is taken) |
 | `bun run --cwd ui build` | `tsc --noEmit` then `vite build` into `ui/dist` (target Safari 17) |
 | `bun run --cwd ui typecheck` | TypeScript, strict |

@@ -1,0 +1,16 @@
+extends: default
+
+ignore: |
+  node_modules/
+  target/
+  .venv/
+  tools/swift-format/.build/
+  .orchestrator/
+  .claude/
+
+rules:
+  line-length:
+    max: 160
+  truthy:
+    check-keys: false
+  document-start: disable

@@ -1,0 +1,77 @@
+# Git hooks. Install with `bunx lefthook install` (see docs/dev-setup.md).
+# Every command is the one CI (#21) runs, restricted here to the staged files.
+
+pre-commit:
+  parallel: true
+  commands:
+    rust:
+      glob: "*.rs"
+      # Generated files and tooling-owned trees: never linted or formatted (reused below).
+      exclude: &generated
+        - "brand/generated/**"
+        - "ui/src/bindings.ts"
+        - ".sqlx/**"
+        - "**/Package.resolved"
+        - "bun.lock"
+        - "Cargo.lock"
+        # Tooling-owned trees, not project sources.
+        - ".orchestrator/**"
+        - ".claude/**"
+      run: scripts/fmt.sh
+      stage_fixed: true
+
+    biome:
+      glob: "*.{js,jsx,ts,tsx,mjs,cjs,json,jsonc,css}"
+      exclude: *generated
+      run: bunx biome check --write --no-errors-on-unmatched --files-ignore-unknown=true {staged_files}
+      stage_fixed: true
+
+    sql:
+      glob: "crates/harvey-db/migrations/*.sql"
+      exclude: *generated
+      run: scripts/sqlfluff.sh fix {staged_files} && scripts/sqlfluff.sh lint {staged_files}
+      stage_fixed: true
+
+    markdown:
+      glob: "*.md"
+      exclude: *generated
+      # --no-globs: lint only the staged files, not the config's `globs` (the full-repo run).
+      run: bunx markdownlint-cli2 --no-globs {staged_files}
+
+    yaml:
+      glob: "*.{yml,yaml}"
+      exclude: *generated
+      run: scripts/yamllint.sh {staged_files}
+
+    swift:
+      glob: "*.swift"
+      exclude: *generated
+      run: scripts/swift-format.sh format {staged_files} && scripts/swift-format.sh lint {staged_files}
+      stage_fixed: true
+
+    deps-exact:
+      glob:
+        - "package.json"
+        - "**/package.json"
+        - "Cargo.toml"
+        - "**/Cargo.toml"
+        - "Package.swift"
+        - "**/Package.swift"
+        - "bunfig.toml"
+        - "rust-toolchain.toml"
+        - "rustfmt-nightly.toolchain"
+        - "requirements-dev.*"
+        - ".github/**/*.yml"
+      run: bun scripts/deps-exact.ts
+
+pre-push:
+  parallel: true
+  commands:
+    clippy:
+      run: cargo clippy --workspace --all-targets --all-features --locked -- -D warnings
+    ui-typecheck:
+      run: bun run --cwd ui typecheck
+    rust-test:
+      run: cargo test --workspace --locked --features fake-platform
+    ui-test:
+      run: bun run --cwd ui test

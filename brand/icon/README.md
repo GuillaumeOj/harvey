@@ -18,7 +18,7 @@ Requires macOS `sips` and `iconutil`, plus ImageMagick `magick`.
 ## Files
 
 | Path | Use |
-|---|---|
+| --- | --- |
 | `layers/0-background.svg`, `1-nib.svg`, `2-section.svg` | Icon Composer layers, 1024 × 1024, full bleed (macOS 26 Tahoe applies the mask). Default appearance. |
 | `layers/dark/*.svg` | The same layers with the Dark appearance's fills. |
 | `preview/harvey-icon-{default,dark}.svg/-1024.png` | Flattened previews with the rounded-square mask. |

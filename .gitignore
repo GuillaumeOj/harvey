@@ -7,3 +7,5 @@ lcov.info
 *.profraw
 *.profdata
 *.tsbuildinfo
+.venv/
+tools/swift-format/.build/

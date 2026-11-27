@@ -5,7 +5,7 @@ See `SPEC.md` §6.3, §6.4, §12.1 and §12.2 for the rationale.
 ## Crates
 
 | Crate | Kind | Responsibility |
-|---|---|---|
+| --- | --- | --- |
 | `harvey-db` | lib | Connection factory, migrations, SQL repositories, ids and clock primitives (`Id`, `Clock`). |
 | `harvey-core` | lib | Domain model, services, business rules. No Tauri, no EventKit, no direct filesystem. Owns `FileResolver` and the `Repository` unit-of-work trait. |
 | `harvey-calendar` | lib | `CalendarProvider` trait, EventKit actor (macOS) and a fake. |
@@ -19,7 +19,7 @@ See `SPEC.md` §6.3, §6.4, §12.1 and §12.2 for the rationale.
 
 ## Dependency direction
 
-```
+```text
 harvey-mcp ─┐
 harvey-ffi ─┼─> harvey-core ─┬─> harvey-calendar ─> harvey-db
 harvey-bench┘                ├─> harvey-backup   ─> harvey-db

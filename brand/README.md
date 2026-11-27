@@ -7,7 +7,7 @@ The full style guide (voice, colour, type, icons, components, tokens) lives on t
 ## Files
 
 | File | What |
-|---|---|
+| --- | --- |
 | `tokens.json` | Single source of truth for code: colours (light/dark), list palette, fonts, text styles, radii, spacing, shadow, motion, shadcn/ui mapping. |
 | `build-tokens.ts` | Validates `tokens.json` and generates the files below. |
 | `generated/tokens.css` | CSS variables + shadcn/ui aliases. Light on `:root`; dark via `prefers-color-scheme` or `[data-theme="dark"]`. Also carries the text styles as `--texte-<style>-*` variables. |
