@@ -54,8 +54,7 @@ type AppInfo = { version: string; build_channel: BuildChannel };
 - `version`: the app version (`0.1.0` today).
 - `build_channel`: `"dev"` when the bundle identifier ends in `.dev` (`com.harvey.dev`), otherwise `"release"`.
 
-Generated call: `commands.appInfo()`. tauri-specta camel-cases function names in TS by default; the front code uses
-whatever name the bindings expose. If the bindings keep `app_info`, use that. `forWindow` takes the TS name of the
+Generated call: `commands.appInfo()` (tauri-specta camel-cases names in TS). `forWindow` takes the TS name of the
 base command.
 
 ## Events
@@ -64,9 +63,8 @@ None yet (`collect_events![]`). `entity_changed` and the other events come with 
 
 ## WS3 wrappers
 
-`<window>__<base>` has the same args and result as `<base>`. TS name: the bindings' rendering of `settings__app_info`
-(for example `settingsAppInfo` or `settings__app_info`). The back report states the exact rendering, so that
-`forWindow` builds the same name. None ships in production yet.
+`<window>__<base>` has the same args and result as `<base>`. TS name: camelCase of the whole name, e.g.
+`settings__app_info` → `settingsAppInfo`, `tray_popover__app_info` → `trayPopoverAppInfo`. None ships in production yet.
 
 ## Capability permission names
 
