@@ -139,7 +139,7 @@ gets its own wrapper command `<window>__<base>` (double underscore): `settings__
 
 - Capabilities are never declared inline: a test fails if `app.security.capabilities` in `tauri.conf.json` or the dev
   overlay holds a capability object, so every grant goes through the checker. A test also keeps the dev overlay's
-  `main` window equal to the base entry, apart from the title.
+  `windows` equal to the base entries (it replaces the whole array), apart from the titles.
 - `tauri.conf.json`: the §6.10 CSP exactly, `devCsp` adding only the Vite dev server (`ws://localhost:1420`,
   `http://localhost:1420`; on desktop Tauri loads `devUrl` directly, so the dev page runs without a CSP and only
   bundled builds enforce `csp`), `withGlobalTauri: false`, `freezePrototype: true`.

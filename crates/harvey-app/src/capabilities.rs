@@ -332,27 +332,34 @@ mod tests {
         }
     }
 
-    /// The dev overlay replaces the `windows` array, so it repeats the main window. It must stay the base entry apart
-    /// from the title.
+    /// The dev overlay replaces the whole `windows` array (JSON merge patch), so it repeats every base window. Each
+    /// must stay the base entry apart from the title, and the overlay must not add or drop a window.
     #[test]
-    fn dev_overlay_main_window_matches_the_base() {
-        let main_window = |file: &str| {
+    fn dev_overlay_windows_match_the_base() {
+        let windows = |file: &str| {
             let config = read_json(file);
-            let mut window = config
+            let list = config
                 .pointer("/app/windows")
                 .and_then(|w| w.as_array())
-                .and_then(|w| w.iter().find(|w| w["label"] == "main"))
-                .unwrap_or_else(|| panic!("{file}: no `main` window"))
+                .unwrap_or_else(|| panic!("{file}: no `app.windows` array"))
                 .clone();
-            window
-                .as_object_mut()
-                .expect("window object")
-                .remove("title");
-            window
+            let mut by_label = std::collections::BTreeMap::new();
+            for mut window in list {
+                let object = window.as_object_mut().expect("window object");
+                object.remove("title");
+                let label = object["label"]
+                    .as_str()
+                    .unwrap_or_else(|| panic!("{file}: window without a label"))
+                    .to_owned();
+                by_label.insert(label, window);
+            }
+            assert!(by_label.contains_key("main"), "{file}: no `main` window");
+            by_label
         };
         assert_eq!(
-            main_window("tauri.dev.conf.json"),
-            main_window("tauri.conf.json")
+            windows("tauri.dev.conf.json"),
+            windows("tauri.conf.json"),
+            "the dev overlay's `windows` must repeat every base window"
         );
     }
 
