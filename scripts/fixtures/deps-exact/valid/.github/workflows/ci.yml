@@ -1,0 +1,14 @@
+name: ci
+on: push
+jobs:
+  test:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@08c6903cd8c0fde910a37f88322edcfb5dd907a8  # v5.0.0
+      - uses: "actions/setup-node@a0853c24544627f65ddf259abe73b1d18a591444"
+      - uses: ./.github/actions/local
+      - uses: docker://alpine@sha256:0000000000000000000000000000000000000000000000000000000000000000
+      - uses: owner/repo/sub/dir@08c6903cd8c0fde910a37f88322edcfb5dd907a8
+      - run: echo "no pin needed here"
+  reuse:
+    uses: owner/repo/.github/workflows/x.yml@08c6903cd8c0fde910a37f88322edcfb5dd907a8

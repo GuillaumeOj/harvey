@@ -1,0 +1,26 @@
+{
+  "config": {
+    "default": true,
+    // Line length: spec tables and prose lines are long by design.
+    "MD013": false,
+    "MD033": { "allowed_elements": ["br", "details", "summary"] },
+    // Ordered list prefix: docs/SPEC.md §15 numbers its open questions across two lists (1–8, then 9–11) and
+    // other docs refer to them by number; renumbering would change the content.
+    "MD029": false,
+    // Emphasis used as a heading: docs/SPEC.md uses bold lead-ins ("**E2E critical paths**", the §15 groups) as
+    // labels for the list that follows; turning them into headings would restructure the spec.
+    "MD036": false
+  },
+  "globs": ["**/*.md"],
+  "ignores": [
+    "**/node_modules/**",
+    "**/target/**",
+    "brand/generated/**",
+    ".sqlx/**",
+    ".venv/**",
+    "tools/swift-format-pin/.build/**",
+    ".orchestrator/**",
+    ".claude/**",
+    "CHANGELOG.md"
+  ]
+}
