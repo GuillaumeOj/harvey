@@ -99,9 +99,9 @@ const textStyleVars = Object.entries(tokens.text).flatMap(([name, t]) => {
     `${v}-taille: ${t.size}px;`,
     `${v}-interligne: ${t.lineHeight}px;`,
     `${v}-graisse: ${t.weight};`,
-    ...(t.letterSpacing ? [`${v}-approche: ${t.letterSpacing};`] : []),
-    ...(t.transform ? [`${v}-casse: ${t.transform};`] : []),
-    ...(t.maxWidth ? [`${v}-largeur-max: ${t.maxWidth}px;`] : []),
+    ...(t.letterSpacing !== undefined ? [`${v}-approche: ${t.letterSpacing};`] : []),
+    ...(t.transform !== undefined ? [`${v}-casse: ${t.transform};`] : []),
+    ...(t.maxWidth !== undefined ? [`${v}-largeur-max: ${t.maxWidth}px;`] : []),
   ];
 });
 
