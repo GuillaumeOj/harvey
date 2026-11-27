@@ -1,7 +1,7 @@
 import { fileURLToPath, URL } from "node:url";
 import tailwindcss from "@tailwindcss/vite";
 import react from "@vitejs/plugin-react";
-import { defineConfig } from "vite";
+import { defineConfig } from "vitest/config";
 
 // Loaded by the Tauri WKWebView (macOS 14+): devUrl http://localhost:1420, frontendDist ui/dist (#19).
 export default defineConfig({
@@ -21,7 +21,18 @@ export default defineConfig({
   },
   build: {
     target: "safari17",
-    outDir: "dist",
-    emptyOutDir: true,
+  },
+  test: {
+    environment: "jsdom",
+    globals: true,
+    setupFiles: ["./src/test/setup.ts"],
+    css: false,
+    coverage: {
+      provider: "v8",
+      reporter: ["text", "lcov"],
+      include: ["src/**"],
+      exclude: ["src/bindings.ts", "src/components/ui/**", "src/main.tsx", "src/test/**", "src/**/*.css"],
+      thresholds: { lines: 90, statements: 90, functions: 90, branches: 90 },
+    },
   },
 });

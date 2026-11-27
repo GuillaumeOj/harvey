@@ -1,29 +1,18 @@
 import { type ClassValue, clsx } from "clsx";
 import { extendTailwindMerge } from "tailwind-merge";
+import { font, radius, shadow, text } from "../../../brand/tokens.json";
 
-/** Text-style utilities from globals.css; each sets font, size, line height, weight and tracking. */
-export const TEXT_STYLES = [
-  "titre-page",
-  "titre-section",
-  "titre-carte",
-  "corps",
-  "corps-fort",
-  "legende",
-  "note-titre",
-  "note-corps",
-  "mono",
-  "mono-petit",
-] as const;
-
+// Theme names come from brand/tokens.json, so a new token merges correctly without touching this file.
 const twMerge = extendTailwindMerge<"text-style">({
   extend: {
     theme: {
-      radius: ["petit", "moyen", "grand"],
-      shadow: ["flottant"],
-      font: ["ui", "lecture", "mono"],
+      radius: Object.keys(radius),
+      shadow: Object.keys(shadow),
+      font: Object.keys(font),
     },
     classGroups: {
-      "text-style": [...TEXT_STYLES],
+      // Text-style utilities (globals.css) set font, size, line height, weight and tracking at once.
+      "text-style": Object.keys(text),
     },
     conflictingClassGroups: {
       "text-style": ["font-family", "font-size", "leading", "font-weight", "tracking", "text-transform"],

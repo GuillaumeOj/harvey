@@ -7,10 +7,8 @@
     "moduleDetection": "force",
     "jsx": "react-jsx",
     "noEmit": true,
-    "isolatedModules": true,
     "verbatimModuleSyntax": true,
     "resolveJsonModule": true,
-    "allowImportingTsExtensions": true,
     "skipLibCheck": true,
     "strict": true,
     "noUncheckedIndexedAccess": true,
@@ -19,9 +17,10 @@
     "exactOptionalPropertyTypes": true,
     "noUnusedLocals": true,
     "noUnusedParameters": true,
-    "types": ["vite/client", "node", "vitest/globals", "@testing-library/jest-dom/vitest"],
-    "baseUrl": ".",
-    "paths": { "@/*": ["./src/*"] }
+    "types": ["vite/client", "node"],
+    "paths": {
+      "@/*": ["./src/*"]
+    }
   },
-  "include": ["src", "vite.config.ts", "vitest.config.ts"]
+  "include": ["src", "vite.config.ts"]
 }

@@ -27,7 +27,8 @@ Then, from the repository root:
 
 `src/styles/globals.css` imports `brand/generated/tokens.css` directly (never copy it). The tokens are generated from
 `brand/tokens.json` by `bun brand/build-tokens.ts`: change the token there, regenerate, and the UI follows with no change
-under `ui/`. `globals.css` only maps the variables to Tailwind:
+under `ui/`. Adding or renaming a token also needs its mapping in `globals.css`;
+`src/styles/theme.test.ts` fails until it is there. `globals.css` only maps the variables to Tailwind:
 
 - colours: shadcn names (`bg-primary`, `text-muted-foreground`, `border-border` …) and Harvey names (`bg-marque-primaire`,
   `text-statut-erreur`, `bg-liste-sauge-fond` …). Tailwind's default palette and type scales (`text-sm`, `font-bold`, `leading-*`, `tracking-*` …) are removed: only
@@ -66,4 +67,4 @@ Then check what the CLI changed before committing:
 - revert any edit to `src/styles/globals.css` (the theme comes from the tokens);
 - replace default Tailwind type classes (`text-sm`, `font-medium` …, which no longer generate CSS) with the brand
   text styles;
-- `cn()` (`src/lib/utils.ts`) knows the brand radii, shadow, fonts and text styles; extend it when adding a theme key.
+- `cn()` (`src/lib/utils.ts`) reads the brand radii, shadow, fonts and text styles from `brand/tokens.json`.

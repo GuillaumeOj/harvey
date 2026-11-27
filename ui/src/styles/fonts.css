@@ -1,13 +1,23 @@
 /*
  * Brand fonts, bundled locally (SIL OFL 1.1, see brand/README.md). Static fontsource packages register the
  * families "Inter", "Newsreader" and "JetBrains Mono", the names tokens.css uses. No remote URL (NFR-01, CSP).
+ * Only the latin and latin-ext subsets are bundled: French plus names with Central European letters.
  */
-@import "@fontsource/inter/400.css";
-@import "@fontsource/inter/500.css";
-@import "@fontsource/inter/600.css";
-@import "@fontsource/newsreader/400.css";
-@import "@fontsource/newsreader/400-italic.css";
-@import "@fontsource/newsreader/500.css";
-@import "@fontsource/newsreader/500-italic.css";
-@import "@fontsource/jetbrains-mono/400.css";
-@import "@fontsource/jetbrains-mono/500.css";
+@import "@fontsource/inter/latin-ext-400.css";
+@import "@fontsource/inter/latin-400.css";
+@import "@fontsource/inter/latin-ext-500.css";
+@import "@fontsource/inter/latin-500.css";
+@import "@fontsource/inter/latin-ext-600.css";
+@import "@fontsource/inter/latin-600.css";
+@import "@fontsource/newsreader/latin-ext-400.css";
+@import "@fontsource/newsreader/latin-400.css";
+@import "@fontsource/newsreader/latin-ext-400-italic.css";
+@import "@fontsource/newsreader/latin-400-italic.css";
+@import "@fontsource/newsreader/latin-ext-500.css";
+@import "@fontsource/newsreader/latin-500.css";
+@import "@fontsource/newsreader/latin-ext-500-italic.css";
+@import "@fontsource/newsreader/latin-500-italic.css";
+@import "@fontsource/jetbrains-mono/latin-ext-400.css";
+@import "@fontsource/jetbrains-mono/latin-400.css";
+@import "@fontsource/jetbrains-mono/latin-ext-500.css";
+@import "@fontsource/jetbrains-mono/latin-500.css";
