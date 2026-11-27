@@ -34,7 +34,8 @@ bun run tauri build --bundles app --config crates/harvey-app/tauri.dev.conf.json
 ```
 
 Bundles land in `target/release/bundle/macos/`. Both are release builds: no devtools, the production CSP, and no dev
-server origin in the navigation allow-list.
+server origin in the navigation allow-list. A `--debug` bundle (`tauri build --debug`) with the production identifier
+hits the dev-identifier guard and refuses to start: add the dev overlay.
 
 ## Rust checks
 

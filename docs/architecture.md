@@ -93,7 +93,7 @@ capability file, regenerate the bindings.
 `storage`, `internal`.
 
 - `field`, `key` and `resource` are identifiers (`"siren"`, `"validation.siren.invalid"`, `"calendar"`), never user
-  values, personal-data ids, paths or SQL (NFR-02). The constructors take `&'static str` to enforce it.
+  values, personal-data ids, paths or SQL (NFR-02). The payload fields are an `Ident` newtype with a private field, so only the `&'static str` constructors can build one.
 - `message_key()` returns `error.<kind>`; `ui/src/lib/errors.ts` maps the same keys to French copy.
 - `Display` and `Debug` print the kind and the identifiers only. `Internal` details are logged Rust-side through
   the redacting logger (#34), never sent to the UI.
@@ -106,8 +106,9 @@ One file per window in `crates/harvey-app/capabilities/` (`main.json` today; `se
 
 1. Each file has exactly one window label, no glob, and no `remote` or `webviews` key. No two files share a label.
    Capability files are top-level `.json` files only (Tauri also loads `toml` and subfolders; the test refuses them).
-2. Permissions are `core:*` or `allow-<command>`. Plugin permissions, `deny-*` and unknown identifiers fail. There
-   are no `tauri-plugin-*` crates.
+2. Permissions are `allow-<command>` or one of `ALLOWED_CORE_PERMISSIONS` (today `core:event:allow-listen` and
+   `core:event:allow-unlisten`). Any other `core:*`, plugin permissions, `deny-*` and unknown identifiers fail.
+   Widening the list is a reviewed change. There are no `tauri-plugin-*` crates.
 3. Every command is granted in exactly one file, and every `allow-*` names a command in `COMMANDS`.
 4. A `<window>__<base>` wrapper is granted only in the file of window `<window>`, and `<base>` exists.
 
@@ -136,6 +137,9 @@ gets its own wrapper command `<window>__<base>` (double underscore): `settings__
 
 ### Webview hardening (§6.10)
 
+- Capabilities are never declared inline: a test fails if `app.security.capabilities` in `tauri.conf.json` or the dev
+  overlay holds a capability object, so every grant goes through the checker. A test also keeps the dev overlay's
+  `windows` equal to the base entries (it replaces the whole array), apart from the titles.
 - `tauri.conf.json`: the §6.10 CSP exactly, `devCsp` adding only the Vite dev server (`ws://localhost:1420`,
   `http://localhost:1420`; on desktop Tauri loads `devUrl` directly, so the dev page runs without a CSP and only
   bundled builds enforce `csp`), `withGlobalTauri: false`, `freezePrototype: true`.

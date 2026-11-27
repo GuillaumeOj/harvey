@@ -1,21 +1,41 @@
 //! The single error type every command returns (§10, NFR-02).
 //!
 //! Payload fields are identifiers (`"siren"`, `"validation.siren.invalid"`, `"calendar"`), never user values,
-//! personal-data ids, paths or SQL. The constructors take `&'static str` so a runtime value cannot reach a payload by
-//! accident. `Display` and `Debug` print the same identifiers and nothing else.
+//! personal-data ids, paths or SQL. They are [`Ident`]s, which only this module can build, from `&'static str`
+//! constructors, so a runtime value cannot reach a payload. `Display` and `Debug` print the same identifiers and
+//! nothing else.
 
 use std::fmt;
 
 use serde::Serialize;
+
+/// A payload identifier. The field is private and there is no public constructor, so only the `&'static str`
+/// constructors of [`AppError`] can make one. It serializes and exports as a plain string.
+#[derive(Clone, Copy, PartialEq, Eq, Serialize, specta::Type)]
+#[serde(transparent)]
+#[specta(inline)]
+pub struct Ident(&'static str);
+
+impl fmt::Display for Ident {
+    fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
+        f.write_str(self.0)
+    }
+}
+
+impl fmt::Debug for Ident {
+    fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
+        fmt::Display::fmt(self, f)
+    }
+}
 
 /// Every command error. Tagged on `kind`; `field`, `key` and `resource` are identifiers, never user values.
 #[derive(Clone, PartialEq, Eq, Serialize, specta::Type)]
 #[serde(tag = "kind", rename_all = "snake_case")]
 pub enum AppError {
     NotFound,
-    Validation { field: String, key: String },
-    Conflict { key: String },
-    PermissionDenied { resource: String },
+    Validation { field: Ident, key: Ident },
+    Conflict { key: Ident },
+    PermissionDenied { resource: Ident },
     CalendarUnavailable,
     Maintenance,
     SchemaMismatch,
@@ -27,22 +47,20 @@ impl AppError {
     /// A field failed validation. `field` names the field, `key` the i18n key of the reason.
     pub fn validation(field: &'static str, key: &'static str) -> Self {
         Self::Validation {
-            field: field.to_owned(),
-            key: key.to_owned(),
+            field: Ident(field),
+            key: Ident(key),
         }
     }
 
     /// The entity changed since the UI read it. `key` is the i18n key of the reason.
     pub fn conflict(key: &'static str) -> Self {
-        Self::Conflict {
-            key: key.to_owned(),
-        }
+        Self::Conflict { key: Ident(key) }
     }
 
     /// The OS or the user denied access to `resource` (e.g. `"calendar"`).
     pub fn permission_denied(resource: &'static str) -> Self {
         Self::PermissionDenied {
-            resource: resource.to_owned(),
+            resource: Ident(resource),
         }
     }
 
