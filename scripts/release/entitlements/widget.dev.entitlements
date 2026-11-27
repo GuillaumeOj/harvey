@@ -1,0 +1,18 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE plist PUBLIC "-//Apple//DTD PLIST 1.0//EN" "http://www.apple.com/DTDs/PropertyList-1.0.dtd">
+<!--
+  Entitlements for the widget extension, .appex (development build).
+  Decision: docs/adr/001-process-sandbox-entitlements.md (ADR-001).
+  $(TeamID) is a placeholder, never a real value: the release pipeline
+  (#116) replaces it with the value of HARVEY_TEAM_ID.
+-->
+<plist version="1.0">
+<dict>
+	<key>com.apple.security.app-sandbox</key>
+	<true/>
+	<key>com.apple.security.application-groups</key>
+	<array>
+		<string>$(TeamID).com.harvey.dev</string>
+	</array>
+</dict>
+</plist>
