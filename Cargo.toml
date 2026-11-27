@@ -15,6 +15,15 @@ harvey-calendar = { path = "crates/harvey-calendar" }
 harvey-backup = { path = "crates/harvey-backup" }
 harvey-ffi = { path = "crates/harvey-ffi" }
 harvey-swift-bridge = { path = "crates/harvey-swift-bridge" }
+# Third-party, exact pins. specta / tauri-specta / specta-typescript are the trio tauri-specta documents.
+paste = "=1.0.15"
+serde = { version = "=1.0.229", features = ["derive"] }
+serde_json = "=1.0.154"
+specta = { version = "=2.0.0-rc.28", features = ["derive", "function"] }
+specta-typescript = "=0.0.15"
+tauri = "=2.12.7"
+tauri-build = "=2.7.6"
+tauri-specta = "=2.0.0-rc.29"
 
 [workspace.lints.rust]
 unsafe_code = "deny"
