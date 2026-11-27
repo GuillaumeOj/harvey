@@ -6,6 +6,9 @@
 @import "../../../brand/generated/tokens.css";
 @import "./fonts.css";
 
+/* Only scan code for class names: prose (README) must not add classes to the shipped CSS. */
+@source not "../../README.md";
+
 /* Same selectors as tokens.css: data-theme on <html> wins, otherwise the OS appearance. */
 @custom-variant dark {
   &:where([data-theme="dark"], [data-theme="dark"] *) {
@@ -18,9 +21,17 @@
   }
 }
 
-/* No colour outside the brand palette can be used by accident. */
+/*
+ * No colour, font, size, weight, line height or letter spacing outside the brand can be used by accident:
+ * type is set with the text-style utilities below.
+ */
 @theme {
   --color-*: initial;
+  --font-*: initial;
+  --text-*: initial;
+  --font-weight-*: initial;
+  --leading-*: initial;
+  --tracking-*: initial;
   --color-white: white;
   --color-black: black;
 }
@@ -121,18 +132,30 @@
   --spacing-6: var(--espace-6);
   --spacing-8: var(--espace-8);
 
-  /* Fonts */
-  --font-ui: var(--font-ui);
-  --font-lecture: var(--font-lecture);
-  --font-mono: var(--font-mono);
-  --font-sans: var(--font-ui);
-  --font-serif: var(--font-lecture);
+  /*
+   * Fonts: tokens.css already defines --font-ui/--font-lecture/--font-mono, so they are not re-declared here
+   * (that would emit self-referencing variables); the font-* utilities are declared below.
+   */
+  --default-font-family: var(--font-ui);
+  --default-mono-font-family: var(--font-mono);
 
   --shadow-flottant: var(--ombre-flottant);
 
   /* Motion */
   --default-transition-duration: var(--duree);
   --default-transition-timing-function: var(--courbe);
+}
+
+@utility font-ui {
+  font-family: var(--font-ui);
+}
+
+@utility font-lecture {
+  font-family: var(--font-lecture);
+}
+
+@utility font-mono {
+  font-family: var(--font-mono);
 }
 
 /* Text styles (brand/tokens.json "text"). Optional fields fall back to the CSS initial value. */
@@ -253,7 +276,9 @@
   ::after {
     /* biome-ignore-start lint/complexity/noImportantStyles: must beat transition/animation utility classes. */
     animation-duration: 0s !important;
+    animation-delay: 0s !important;
     animation-iteration-count: 1 !important;
+    transition-delay: 0s !important;
     transition-duration: 0s !important;
     scroll-behavior: auto !important;
     /* biome-ignore-end lint/complexity/noImportantStyles: end of the reduced-motion overrides. */

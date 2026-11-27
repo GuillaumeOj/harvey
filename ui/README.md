@@ -30,8 +30,11 @@ Then, from the repository root:
 under `ui/`. `globals.css` only maps the variables to Tailwind:
 
 - colours: shadcn names (`bg-primary`, `text-muted-foreground`, `border-border` …) and Harvey names (`bg-marque-primaire`,
-  `text-statut-erreur`, `bg-liste-sauge-fond` …). Tailwind's default palette is removed: only brand colours exist.
+  `text-statut-erreur`, `bg-liste-sauge-fond` …). Tailwind's default palette and type scales (`text-sm`, `font-bold`, `leading-*`, `tracking-*` …) are removed: only
+  brand colours and the text styles below exist.
 - radii `rounded-petit|moyen|grand`, spacing steps 1/2/3/4/6/8 (`p-4` = `--espace-4`), fonts `font-ui|lecture|mono`.
+  The spacing steps drive every utility on those steps, sizes included (`h-8`, `size-4` …): changing a spacing token
+  also resizes those elements.
 - text styles as utilities: `titre-page`, `titre-section`, `titre-carte`, `corps`, `corps-fort`, `legende`, `note-titre`,
   `note-corps`, `mono`, `mono-petit`.
 - dark mode: OS appearance, or `data-theme="dark"` / `"light"` on `<html>`; the `dark:` variant uses the same selectors.
@@ -61,4 +64,6 @@ Then check what the CLI changed before committing:
   update `bun.lock`;
 - delete any `package-lock.json`, `yarn.lock` or `pnpm-lock.yaml` it created;
 - revert any edit to `src/styles/globals.css` (the theme comes from the tokens);
-- replace default Tailwind text sizes (`text-sm` …) with the brand text styles.
+- replace default Tailwind type classes (`text-sm`, `font-medium` …, which no longer generate CSS) with the brand
+  text styles;
+- `cn()` (`src/lib/utils.ts`) knows the brand radii, shadow, fonts and text styles; extend it when adding a theme key.
