@@ -52,10 +52,10 @@ Contents, all from #24 and spec §4.3, §6.1, §6.5–§6.9, §13, FR-61, FR-151
   container; EventKit, bookmarks, backups and signing issues depend on who
   may do what.
 - **Decision**: the §6.8 table verbatim (Harvey.app / widget `.appex` /
-  `harvey-mcp`); App Group IDs prod `<TeamID>.com.fusily.harvey`, dev
-  `<TeamID>.com.fusily.harvey.dev` (team-prefixed, no provisioning
+  `harvey-mcp`); App Group IDs prod `<TeamID>.com.harvey`, dev
+  `<TeamID>.com.harvey.dev` (team-prefixed, no provisioning
   profile); live DB path
-  `~/Library/Group Containers/<TeamID>.com.fusily.harvey/Harvey/harvey.sqlite`
+  `~/Library/Group Containers/<TeamID>.com.harvey/Harvey/harvey.sqlite`
   (`HARVEY_DATA_DIR` override for dev/tests); per-binary entitlement files
   (links to `scripts/release/entitlements/`); signing order inside-out:
   frameworks/dylibs → `harvey-mcp` → widget `.appex` → `Harvey.app`, never
@@ -88,10 +88,10 @@ the release pipeline (#116) from `HARVEY_TEAM_ID` — never a real value.
 
 | File | Keys |
 |---|---|
-| `harvey-app.entitlements` | `com.apple.security.application-groups` = [`$(TeamID).com.fusily.harvey`]; `com.apple.security.personal-information.calendars` = true |
-| `harvey-mcp.entitlements` | `com.apple.security.application-groups` = [`$(TeamID).com.fusily.harvey`] only |
-| `widget.entitlements` | `com.apple.security.app-sandbox` = true; `com.apple.security.application-groups` = [`$(TeamID).com.fusily.harvey`] |
-| `harvey-app.dev.entitlements` | as app, group `$(TeamID).com.fusily.harvey.dev` |
+| `harvey-app.entitlements` | `com.apple.security.application-groups` = [`$(TeamID).com.harvey`]; `com.apple.security.personal-information.calendars` = true |
+| `harvey-mcp.entitlements` | `com.apple.security.application-groups` = [`$(TeamID).com.harvey`] only |
+| `widget.entitlements` | `com.apple.security.app-sandbox` = true; `com.apple.security.application-groups` = [`$(TeamID).com.harvey`] |
+| `harvey-app.dev.entitlements` | as app, group `$(TeamID).com.harvey.dev` |
 | `harvey-mcp.dev.entitlements` | as MCP, `.dev` group |
 | `widget.dev.entitlements` | as widget, `.dev` group |
 

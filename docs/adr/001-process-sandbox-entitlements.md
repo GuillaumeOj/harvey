@@ -35,8 +35,8 @@ The process, sandbox and entitlement model is the one of spec §6.8:
 
 The App Group ID is team-prefixed, so no provisioning profile is needed:
 
-- Production: `<TeamID>.com.fusily.harvey`
-- Development: `<TeamID>.com.fusily.harvey.dev` (development builds use
+- Production: `<TeamID>.com.harvey`
+- Development: `<TeamID>.com.harvey.dev` (development builds use
   the same paths under this group and never touch production data)
 
 The live database is:
@@ -44,7 +44,7 @@ The live database is:
 <!-- markdownlint-disable MD013 -->
 
 ```text
-~/Library/Group Containers/<TeamID>.com.fusily.harvey/Harvey/harvey.sqlite
+~/Library/Group Containers/<TeamID>.com.harvey/Harvey/harvey.sqlite
 ```
 
 <!-- markdownlint-enable MD013 -->
