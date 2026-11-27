@@ -1,0 +1,29 @@
+[workspace.dependencies]
+range = "1.0"
+caret = "^1.0.0"
+nopatch = "=1.2"
+tablerange = { version = "1.2", features = ["a"] }
+gitdep = { git = "https://github.com/a/b" }
+branch = { git = "https://github.com/a/b", branch = "main" }
+reg = { version = "=1.0.0", registry = "internal" }
+noversion = { features = ["a"] }
+good = "=1.0.0"
+localok = { path = "crates/x" }
+
+[dependencies]
+bare = "1.0.0"
+
+[dev-dependencies]
+devdep = "~1.0.0"
+
+[build-dependencies]
+builddep = { version = ">=1.0.0" }
+
+[target.'cfg(unix)'.dependencies]
+libc = "0.2.177"
+
+[target.'cfg(windows)'.build-dependencies]
+winres = { version = "0.1" }
+
+[dependencies.dotted]
+version = "1"

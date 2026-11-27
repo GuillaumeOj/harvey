@@ -1,0 +1,8 @@
+[workspace]
+members = ["crates/*"]
+
+[workspace.dependencies]
+serde = "=1.0.228"
+tokio = { version = "=1.48.0", features = ["rt"] }
+local = { path = "crates/local" }
+pre = "=1.0.0-rc.3"

@@ -1,0 +1,32 @@
+{
+  "name": "bad",
+  "packageManager": "npm@10.0.0",
+  "dependencies": {
+    "caret": "^1.2.3",
+    "tilde": "~1.2.3",
+    "gt": ">1.0.0",
+    "lt": "<2.0.0",
+    "star": "*",
+    "x": "1.x",
+    "or": "1.0.0 || 2.0.0",
+    "hyphen": "1.0.0 - 2.0.0",
+    "tag": "latest",
+    "partial": "1.2",
+    "empty": ""
+  },
+  "devDependencies": {
+    "gitplus": "git+https://github.com/a/b.git",
+    "gh": "github:a/b",
+    "tarball": "https://example.com/x.tgz",
+    "file": "file:../x",
+    "link": "link:../x",
+    "ws": "workspace:^",
+    "num": 1
+  },
+  "optionalDependencies": {
+    "opt": "^1.0.0"
+  },
+  "peerDependencies": {
+    "peer": ">=1.0.0"
+  }
+}
