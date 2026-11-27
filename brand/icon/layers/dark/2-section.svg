@@ -1,0 +1,11 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="1024" height="1024" viewBox="0 0 100 100">
+<defs>
+  <linearGradient id="grad-bg" x1="0" y1="0" x2="0" y2="1"><stop offset="0" stop-color="#2B2321"/><stop offset="1" stop-color="#131010"/></linearGradient>
+  <linearGradient id="grad-nib" x1="0.15" y1="0" x2="0.85" y2="1"><stop offset="0" stop-color="#C94B5B"/><stop offset="1" stop-color="#7A1F2B"/></linearGradient>
+  <linearGradient id="grad-sec" x1="0" y1="0" x2="1" y2="0"><stop offset="0" stop-color="#5A4F49"/><stop offset="1" stop-color="#2E2724"/></linearGradient>
+</defs>
+<g id="section">
+  <path d="M33 14.5 Q33 12 35.5 12 L64.5 12 Q67 12 67 14.5 L66.6 30 Q50 35.2 33.4 30 Z" fill="url(#grad-sec)"/>
+  <path d="M34.2 27.2 Q50 32 65.8 27.2" fill="none" stroke="#FFFFFF" stroke-opacity="0.2" stroke-width="0.6" stroke-linecap="round"/>
+</g>
+</svg>
