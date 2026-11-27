@@ -36,8 +36,8 @@ The process, sandbox and entitlement model is the one of spec §6.8:
 The App Group ID is team-prefixed, so no provisioning profile is needed:
 
 - Production: `<TeamID>.com.fusily.harvey`
-- Development: `<TeamID>.com.fusily.harvey.dev` (development builds never
-  touch production data)
+- Development: `<TeamID>.com.fusily.harvey.dev` (development builds use
+  the same paths under this group and never touch production data)
 
 The live database is:
 
@@ -49,9 +49,7 @@ The live database is:
 
 <!-- markdownlint-enable MD013 -->
 
-Development builds use the same path under the development group,
-`<TeamID>.com.fusily.harvey.dev`. `HARVEY_DATA_DIR` overrides this path for
-development and tests.
+`HARVEY_DATA_DIR` overrides this path for development and tests.
 
 ### Entitlement files
 
@@ -97,8 +95,8 @@ runtime.
 ### Positive
 
 - `Harvey.app` is not sandboxed, so file bookmarks are regular bookmarks,
-  created without the security-scope option and resolved by the app only
-  (§6.8 calls them app-scoped); no security-scoped access is started.
+  created without the security-scope option (§6.8 calls them app-scoped);
+  no security-scoped access is started.
 - Writing to the backup folder is a plain filesystem write by the
   non-sandboxed app. iCloud Drive access may prompt once; onboarding
   handles it.
@@ -118,14 +116,13 @@ runtime.
 - EventKit is only in the app, so MCP calendar writes are queued, approved
   in Harvey and pushed by the running app (§4.3). This is why Harvey
   registers as a login item and keeps running in the menu bar (FR-151).
-  Until the app runs, queued calendar operations wait.
 - Three entitlement files (and three dev variants) must stay in step with
   this ADR and with the signing order.
 
 ### Follow-ups
 
-- #116: the release pipeline consumes the entitlement files, resolves
-  `$(TeamID)` from `HARVEY_TEAM_ID` and signs in the order above.
+- #116: the release pipeline consumes the entitlement files and signs in
+  the order above.
 - #25, #26 and #27 resolve the open questions below. A spike that changes
   this decision does so with a new ADR that supersedes this one.
 
