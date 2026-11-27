@@ -6,6 +6,7 @@ pub mod commands;
 pub mod error;
 pub mod navigation;
 
+pub use commands::BuildChannel;
 pub use error::AppError;
 use tauri::webview::NewWindowResponse;
 use tauri::{App, WebviewWindowBuilder};
@@ -17,7 +18,7 @@ pub const MAIN_WINDOW: &str = "main";
 /// run with the dev identifier (`*.dev`), so it never touches production data. Bundled release builds may use either
 /// identifier (`bun run tauri build --config crates/harvey-app/tauri.dev.conf.json` is allowed).
 pub fn check_dev_identifier(identifier: &str, debug: bool) -> Result<(), String> {
-    if debug && !identifier.ends_with(".dev") {
+    if debug && BuildChannel::from_identifier(identifier) != BuildChannel::Dev {
         return Err(format!(
             "debug build with identifier `{identifier}`: debug builds must use the dev identifier so they never \
              touch production data. Start the app with `bun run dev`."

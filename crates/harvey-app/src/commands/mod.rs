@@ -38,9 +38,11 @@ fn render_bindings(builder: &tauri_specta::Builder<tauri::Wry>) -> String {
     use std::sync::atomic::{AtomicUsize, Ordering};
     static NEXT: AtomicUsize = AtomicUsize::new(0);
 
-    let dir = std::env::temp_dir().join(format!("harvey-app-bindings-{}", std::process::id()));
-    std::fs::create_dir_all(&dir).expect("create temp dir");
-    let path = dir.join(format!("{}.ts", NEXT.fetch_add(1, Ordering::Relaxed)));
+    let path = std::env::temp_dir().join(format!(
+        "harvey-app-bindings-{}-{}.ts",
+        std::process::id(),
+        NEXT.fetch_add(1, Ordering::Relaxed)
+    ));
     builder
         .export(
             specta_typescript::Typescript::default().header(BINDINGS_HEADER),
@@ -52,9 +54,9 @@ fn render_bindings(builder: &tauri_specta::Builder<tauri::Wry>) -> String {
     ts
 }
 
-#[cfg(test)]
 /// The commands `builder` registers, as specta sees them. `Builder` keeps its configuration private; exporting
 /// through this language is the public way to read it.
+#[cfg(test)]
 fn collected(builder: &tauri_specta::Builder<tauri::Wry>) -> Vec<Function> {
     struct Collect<'a>(&'a mut Vec<Function>);
 
