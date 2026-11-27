@@ -8,4 +8,4 @@ lcov.info
 *.profdata
 *.tsbuildinfo
 .venv/
-tools/swift-format/.build/
+tools/swift-format-pin/.build/

@@ -16,7 +16,7 @@
     "**/node_modules/**",
     "**/target/**",
     ".venv/**",
-    "tools/swift-format/.build/**",
+    "tools/swift-format-pin/.build/**",
     ".orchestrator/**",
     ".claude/**",
     "CHANGELOG.md"
