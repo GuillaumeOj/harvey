@@ -28,10 +28,11 @@ const RUST_CHANNEL = /^1\.\d+\.\d+$/;
 const NIGHTLY = /^nightly-\d{4}-\d{2}-\d{2}$/;
 const ACTION_SHA = /^[\w.-]+\/[\w.-]+(?:\/[^@\s]+)?@[0-9a-f]{40}$/;
 const DOCKER_DIGEST = /^docker:\/\/\S+@sha256:[0-9a-f]{64}$/;
-const PIP_PIN = new RegExp(String.raw`^[A-Za-z0-9][A-Za-z0-9._-]*(?:\[[^\]]*\])?==${SEMVER}(?:\s*;.*)?$`);
+const PEP440_EXACT = String.raw`\d+(?:\.\d+)*(?:(?:a|b|rc)\d+)?(?:\.post\d+)?(?:\.dev\d+)?(?:\+[\w.]+)?`;
+const PIP_PIN = new RegExp(String.raw`^[A-Za-z0-9][A-Za-z0-9._-]*(?:\[[^\]]*\])?==${PEP440_EXACT}(?:\s*;.*)?$`);
 
-const SKIP_DIRS = new Set(["node_modules", "target", ".git", ".venv", ".build"]);
-const SKIP_PREFIXES = ["scripts/fixtures/"];
+const SKIP_DIRS = new Set(["node_modules", "target", ".git", ".venv", ".build", ".claude", ".orchestrator"]);
+const SKIP_PATHS = ["scripts/fixtures"];
 
 function isObject(value: unknown): value is Record<string, unknown> {
   return typeof value === "object" && value !== null && !Array.isArray(value);
@@ -106,7 +107,13 @@ export function checkPackageJson(file: string, text: string, isRoot = false): Vi
 // Cargo.toml
 // ---------------------------------------------------------------------------------------------------------------------
 
-const CARGO_DEP_TABLES = ["dependencies", "dev-dependencies", "build-dependencies"];
+const CARGO_DEP_TABLES = [
+  "dependencies",
+  "dev-dependencies",
+  "build-dependencies",
+  "dev_dependencies",
+  "build_dependencies",
+];
 const CARGO_GIT_KEYS = ["git", "registry", "branch", "tag", "rev"];
 
 function tomlKey(key: string): string {
@@ -251,7 +258,7 @@ export function checkPackageSwift(file: string, text: string): Violation[] {
       .replace(/^[\s,]+|[\s,]+$/g, "")
       .replace(/\s+/g, " ");
 
-    const exact = /\bexact\s*:\s*"([^"]*)"/.exec(args);
+    const exact = /\bexact\s*:\s*"([^"]*)"|\.exact\s*\(\s*"([^"]*)"\s*\)/.exec(args);
     let reason: string | undefined;
     if (/\.upToNext(?:Major|Minor)\b/.test(maskedArgs)) reason = "range; use exact:";
     else if (/\bfrom\s*:/.test(maskedArgs)) reason = "`from:` is a range; use exact:";
@@ -259,7 +266,7 @@ export function checkPackageSwift(file: string, text: string): Violation[] {
     else if (/\bbranch\s*:|\.branch\s*\(/.test(maskedArgs)) reason = "branch is not allowed; use exact:";
     else if (/\brevision\s*:|\.revision\s*\(/.test(maskedArgs)) reason = "revision is not allowed; use exact:";
     else if (!exact) reason = 'use exact: "x.y.z"';
-    else if (!EXACT_SEMVER.test(exact[1] as string)) reason = 'exact: must be a full "x.y.z" version';
+    else if (!EXACT_SEMVER.test((exact[1] ?? exact[2]) as string)) reason = 'exact: must be a full "x.y.z" version';
     if (reason) violations.push({ file, location, spec: spec || "(no requirement)", reason });
   }
   return violations;
@@ -339,7 +346,13 @@ export function checkRequirements(file: string, text: string): Violation[] {
       .replace(/(^|\s)#.*$/, "")
       .replace(/(\s+--hash=\S+)+\s*$/, "")
       .trim();
-    if (entry === "" || /^(-r|-c|--requirement|--constraint)\s+\S+$/.test(entry)) continue;
+    if (
+      entry === "" ||
+      /^(-[rci]|--(?:requirement|constraint|index-url|extra-index-url|no-binary|only-binary|require-hashes|prefer-binary))(?:[\s=]|$)/.test(
+        entry,
+      )
+    )
+      continue;
     if (!PIP_PIN.test(entry)) {
       violations.push({ file, location: `line ${startLine}`, spec: entry, reason: "use name==x.y.z" });
     }
@@ -373,7 +386,7 @@ function* walk(root: string, dir = root): Generator<string> {
     const full = join(dir, entry.name);
     const rel = relative(root, full).split(sep).join("/");
     if (entry.isDirectory()) {
-      if (SKIP_DIRS.has(entry.name) || SKIP_PREFIXES.some((prefix) => `${rel}/`.startsWith(prefix))) continue;
+      if (SKIP_DIRS.has(entry.name) || SKIP_PATHS.some((path) => rel === path || rel.endsWith(`/${path}`))) continue;
       yield* walk(root, full);
     } else if (entry.isFile()) {
       yield rel;
@@ -451,7 +464,9 @@ function main(argv: string[]): number {
     }
     return ok ? 0 : 1;
   } catch (error) {
-    console.error(`deps-exact: ${error instanceof FileError ? error.message : (error as Error).message}`);
+    const message = (error as Error).message;
+    if (argv.includes("--json")) console.log(JSON.stringify({ ok: false, error: message }));
+    console.error(`deps-exact: ${message}`);
     return 2;
   }
 }

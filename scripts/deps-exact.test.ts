@@ -2,7 +2,7 @@ import { describe, expect, test } from "bun:test";
 import { mkdirSync, mkdtempSync, rmSync, writeFileSync } from "node:fs";
 import { tmpdir } from "node:os";
 import { join, resolve } from "node:path";
-import { checkRepo, type Violation } from "./deps-exact.ts";
+import { checkCargoToml, checkPackageSwift, checkRepo, checkRequirements, type Violation } from "./deps-exact.ts";
 
 const SCRIPT = resolve(import.meta.dir, "deps-exact.ts");
 const FIXTURES = resolve(import.meta.dir, "fixtures/deps-exact");
@@ -192,6 +192,39 @@ describe("requirements*.txt / *.in", () => {
       "requirements.in:line 2",
     ]);
     expect(violations[0]?.spec).toBe("sqlfluff>=3.0");
+  });
+});
+
+describe("review fixes", () => {
+  test("accepts PEP 440 exact pins and pip option lines", () => {
+    const text =
+      "--index-url https://pypi.org/simple\ntzdata==2024.2\nfoo==1.0.0.post1\nbaz==1.0.0rc1\n--only-binary=:all:\n";
+    expect(checkRequirements("requirements.txt", text)).toEqual([]);
+    expect(checkRequirements("requirements.txt", "foo==1.*\n")).toHaveLength(1);
+  });
+
+  test("accepts .exact() and underscore Cargo tables, rejects them when unpinned", () => {
+    expect(checkPackageSwift("Package.swift", '.package(url: "u", .exact("1.2.3"))')).toEqual([]);
+    expect(checkCargoToml("Cargo.toml", '[dev_dependencies]\nx = "1"\n')).toHaveLength(1);
+  });
+
+  test("skips nested worktrees and nested fixtures", () => {
+    const root = mkdtempSync(join(tmpdir(), "deps-exact-nested-"));
+    try {
+      for (const dir of [".claude/worktrees/x", "a/scripts/fixtures/y"]) {
+        mkdirSync(join(root, dir), { recursive: true });
+        writeFileSync(join(root, dir, "package.json"), '{ "dependencies": { "bad": "^1.0.0" } }');
+      }
+      expect(checkRepo(root).violations).toEqual([]);
+    } finally {
+      rmSync(root, { recursive: true, force: true });
+    }
+  });
+
+  test("--json reports usage errors on stdout too", () => {
+    const { code, stdout } = cli(["--json", "--root", join(FIXTURES, "does-not-exist")]);
+    expect(code).toBe(2);
+    expect(JSON.parse(stdout).ok).toBe(false);
   });
 });
 

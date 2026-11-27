@@ -1,5 +1,5 @@
 sqlfluff>=3.0
-yamllint==1.37
+yamllint!=1.37.1
 loose
 tilde~=1.2.3
 star==1.2.*
