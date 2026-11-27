@@ -1,0 +1,17 @@
+[package]
+name = "harvey-core"
+edition.workspace = true
+rust-version.workspace = true
+version.workspace = true
+publish.workspace = true
+
+[lints]
+workspace = true
+
+[features]
+fake-platform = ["harvey-calendar/fake-platform", "harvey-backup/fake-platform"]
+
+[dependencies]
+harvey-db = { workspace = true }
+harvey-calendar = { workspace = true }
+harvey-backup = { workspace = true }
