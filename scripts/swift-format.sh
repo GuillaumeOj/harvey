@@ -13,14 +13,13 @@ usage() {
   echo "usage: scripts/swift-format.sh {format|lint} [files…]" >&2
   exit 2
 }
-[[ $# -ge 1 ]] || usage
-mode="$1"
-shift
+mode="${1:-}"
 case "$mode" in
   format) args=(format --in-place) ;;
   lint) args=(lint --strict) ;;
   *) usage ;;
 esac
+shift
 
 if ! command -v swift >/dev/null 2>&1; then
   echo "swift-format: \`swift\` not found; install Xcode (or the Xcode Command Line Tools) and run \`swift build --package-path tools/swift-format-pin -c release --product swift-format\` (see docs/dev-setup.md)" >&2

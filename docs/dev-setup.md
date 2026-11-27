@@ -87,7 +87,7 @@ bunx lefthook install
 
 `lefthook.yml` defines:
 
-- **pre-commit** (parallel, staged files only): the pinned nightly rustfmt (Rust), Biome `check --write` (TS/JS/JSON/CSS),
+- **pre-commit** (parallel, staged files only): `scripts/fmt.sh` (Rust), Biome `check --write` (TS/JS/JSON/CSS),
   `scripts/sqlfluff.sh fix` + `lint` (migrations), markdownlint-cli2 (Markdown), `scripts/yamllint.sh` (YAML),
   `scripts/swift-format.sh format` + `lint` (Swift), and `bun scripts/deps-exact.ts` when a dependency or toolchain
   file is staged. Formatters re-stage the files they fix; linters block the commit.

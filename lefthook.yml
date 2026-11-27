@@ -14,12 +14,9 @@ pre-commit:
         - "**/Package.resolved"
         - "bun.lock"
         - "Cargo.lock"
-        # Tooling-owned trees, not project sources.
         - ".orchestrator/**"
         - ".claude/**"
-      # The pinned nightly rustfmt of scripts/fmt.sh, on the staged files only (`cargo fmt --all` would rewrite
-      # unstaged files too). skip_children: do not follow `mod foo;` into files that are not staged.
-      run: rustfmt +"$(cat rustfmt-nightly.toolchain)" --config skip_children=true {staged_files}
+      run: scripts/fmt.sh {staged_files}
       stage_fixed: true
 
     biome:
