@@ -3,7 +3,7 @@
 // Contract: .orchestrator/features/lint-and-format-tooling-lefthook-sqlfluf/api-contract.md
 // No network, no third-party dependency (Bun.TOML, node:fs).
 
-import { existsSync, readdirSync, readFileSync, statSync } from "node:fs";
+import { readdirSync, readFileSync, statSync } from "node:fs";
 import { basename, dirname, join, relative, resolve, sep } from "node:path";
 
 export interface Violation {
@@ -39,6 +39,7 @@ function isObject(value: unknown): value is Record<string, unknown> {
 }
 
 function describe(value: unknown): string {
+  if (value === undefined) return "(missing)";
   return typeof value === "string" ? value : JSON.stringify(value);
 }
 
@@ -163,18 +164,9 @@ function checkCargoTables(file: string, prefix: string, tables: Record<string, u
 export function checkCargoToml(file: string, text: string): Violation[] {
   const toml = parseToml(file, text);
   const violations = checkCargoTables(file, "", toml);
-
-  const workspace = toml.workspace;
-  if (isObject(workspace) && isObject(workspace.dependencies)) {
-    for (const [name, dep] of Object.entries(workspace.dependencies)) {
-      const violation = checkCargoDep(file, `workspace.dependencies.${tomlKey(name)}`, dep);
-      if (violation) violations.push(violation);
-    }
-  }
-
-  const target = toml.target;
-  if (isObject(target)) {
-    for (const [cfg, tables] of Object.entries(target)) {
+  if (isObject(toml.workspace)) violations.push(...checkCargoTables(file, "workspace.", toml.workspace));
+  if (isObject(toml.target)) {
+    for (const [cfg, tables] of Object.entries(toml.target)) {
       if (isObject(tables)) violations.push(...checkCargoTables(file, `target.'${cfg}'.`, tables));
     }
   }
@@ -305,7 +297,7 @@ export function checkWorkflow(file: string, text: string): Violation[] {
 export function checkBunfig(file: string, text: string): Violation[] {
   const install = parseToml(file, text).install;
   if (isObject(install) && install.exact === true) return [];
-  const spec = isObject(install) && "exact" in install ? describe(install.exact) : "(missing)";
+  const spec = describe(isObject(install) ? install.exact : undefined);
   return [{ file, location: "install.exact", spec, reason: "set [install] exact = true" }];
 }
 
@@ -317,7 +309,7 @@ export function checkRustToolchain(file: string, text: string): Violation[] {
     {
       file,
       location: "toolchain.channel",
-      spec: channel === undefined ? "(missing)" : describe(channel),
+      spec: describe(channel),
       reason: 'use a full version "1.x.y"',
     },
   ];
@@ -346,15 +338,10 @@ export function checkRequirements(file: string, text: string): Violation[] {
     }
     const entry = logical
       .replace(/(^|\s)#.*$/, "")
-      .replace(/(\s+--hash=\S+)+\s*$/, "")
+      .replace(/\s+--hash=\S+/g, "")
       .trim();
-    if (
-      entry === "" ||
-      /^(-[rcif]|--(?:requirement|constraint|index-url|extra-index-url|find-links|trusted-host|no-index|no-binary|only-binary|require-hashes|prefer-binary|pre))(?:[\s=]|$)/.test(
-        entry,
-      )
-    )
-      continue;
+    // Any other option line (-r, -c, --index-url, ...) is not a requirement; editable installs are.
+    if (entry === "" || (entry.startsWith("-") && !/^(-e|--editable)\b/.test(entry))) continue;
     if (!PIP_PIN.test(entry)) {
       violations.push({ file, location: `line ${startLine}`, spec: entry, reason: "use name==x.y.z" });
     }
@@ -455,7 +442,7 @@ function main(argv: string[]): number {
   try {
     const args = parseArgs(argv);
     const root = resolve(args.root ?? defaultRoot());
-    if (!existsSync(root) || !statSync(root).isDirectory()) throw new FileError(`not a directory: ${root}`);
+    if (!statSync(root, { throwIfNoEntry: false })?.isDirectory()) throw new FileError(`not a directory: ${root}`);
 
     const { filesChecked, violations } = checkRepo(root);
     const ok = violations.length === 0;

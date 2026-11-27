@@ -242,6 +242,13 @@ describe("review fixes", () => {
   });
 });
 
+describe("requirements options", () => {
+  test("unlisted option lines are skipped but editable installs are rejected", () => {
+    expect(checkRequirements("requirements.txt", "--config-settings=x=y\n--no-deps\n")).toEqual([]);
+    expect(checkRequirements("requirements.txt", "-e git+https://example.com/a.git\n")).toHaveLength(1);
+  });
+});
+
 describe("CLI", () => {
   test("exit 0 and one-line summary on success", () => {
     const { code, stdout, stderr } = cli(["--root", fixture("valid")]);
