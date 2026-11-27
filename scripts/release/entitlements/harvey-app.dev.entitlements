@@ -1,0 +1,21 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE plist PUBLIC "-//Apple//DTD PLIST 1.0//EN" "http://www.apple.com/DTDs/PropertyList-1.0.dtd">
+<!--
+  Entitlements for Harvey.app (development build).
+  Decision: docs/adr/001-process-sandbox-entitlements.md (ADR-001).
+  $(TeamID) is a placeholder, never a real value: the release pipeline
+  (#116) replaces it with the value of HARVEY_TEAM_ID.
+  Reminders: no reminders-specific key. Reminders are assumed covered by
+  the calendars key plus the NSRemindersFullAccessUsageDescription usage
+  string in Info.plist, pending #25.
+-->
+<plist version="1.0">
+<dict>
+	<key>com.apple.security.application-groups</key>
+	<array>
+		<string>$(TeamID).com.fusily.harvey.dev</string>
+	</array>
+	<key>com.apple.security.personal-information.calendars</key>
+	<true/>
+</dict>
+</plist>
